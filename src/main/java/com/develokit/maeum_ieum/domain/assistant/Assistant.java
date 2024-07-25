@@ -34,7 +34,7 @@ public class Assistant extends BaseEntity {
     private String forbiddenTopic; //금기 주제
 
     @Builder
-    public Assistant(String name, Caregiver caregiver, Elderly elderly, String rule, String conversationTopic, String responseType, String personality, String forbiddenTopic) {
+    public Assistant(String name, Caregiver caregiver, Elderly elderly, String rule, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId) {
         this.name = name;
         this.caregiver = caregiver;
         this.elderly = elderly;
@@ -43,5 +43,7 @@ public class Assistant extends BaseEntity {
         this.responseType = responseType;
         this.personality = personality;
         this.forbiddenTopic = forbiddenTopic;
+        this.openAiAssistantId = openAiAssistantId;
+        caregiver.getAssistantList().add(this);
     }
 }

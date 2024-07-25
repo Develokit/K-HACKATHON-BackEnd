@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.domain.base;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import org.springframework.cglib.core.Local;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.annotation.CreatedDate;
