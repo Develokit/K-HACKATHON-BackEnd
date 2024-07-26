@@ -1,18 +1,22 @@
 package com.develokit.maeum_ieum.config.loginUser;
 
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
 @Getter
-@NoArgsConstructor
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class LoginUser implements UserDetails {
 
-    private Caregiver caregiver;
+    private final Caregiver caregiver;
+
     @Override
     public boolean isAccountNonExpired() {
         return UserDetails.super.isAccountNonExpired();

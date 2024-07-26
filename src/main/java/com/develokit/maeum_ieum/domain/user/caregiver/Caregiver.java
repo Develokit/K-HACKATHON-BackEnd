@@ -5,6 +5,7 @@ import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @Getter
+@AllArgsConstructor
 public class Caregiver extends User {
 
     @Id
@@ -33,9 +35,11 @@ public class Caregiver extends User {
     @OneToMany(mappedBy = "caregiver")
     private List<Elderly> elderlyList = new ArrayList<>();
 
+    @Builder
     public Caregiver(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String username, String password) {
         super(name, contact, gender, imgUrl, birthDate, organization);
         this.username = username;
         this.password = password;
     }
+
 }

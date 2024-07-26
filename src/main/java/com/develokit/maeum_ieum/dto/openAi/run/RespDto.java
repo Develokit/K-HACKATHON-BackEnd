@@ -4,12 +4,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 
 public class RespDto {
+
+    @Getter
+    @NoArgsConstructor
+    public static class ListRunRespDto{
+        List<RunRespDto> runRespDtoList = new ArrayList<>();
+    }
 
 
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
