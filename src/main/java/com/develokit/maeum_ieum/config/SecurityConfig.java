@@ -1,11 +1,11 @@
 package com.develokit.maeum_ieum.config;
 
 import com.develokit.maeum_ieum.config.jwt.JwtAuthenticationFilter;
+import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,6 +37,7 @@ public class SecurityConfig {
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
             builder.addFilter(new JwtAuthenticationFilter(authenticationManager)); //jwt 인증 필터
+            builder.addFilter(new JwtAuthorizationFilter(authenticationManager)); //인가 필터
             super.configure(builder);
         }
     }
@@ -49,9 +50,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/s/**").authenticated()
-                        .anyRequest().permitAll()
+                    .requestMatchers("/caregivers/elderlys").authenticated()
+                    .anyRequest().permitAll()
                 )
+                .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) //토큰 쓸 거라서 해제

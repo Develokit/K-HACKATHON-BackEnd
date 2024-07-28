@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.domain.user.caregiver;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.user.Gender;
+import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.User;
 import jakarta.persistence.*;
@@ -27,6 +28,8 @@ public class Caregiver extends User {
     private Long id;
 
     private String username;
+
+    @Column(nullable = false, length = 60)
     private String password;
 
     @OneToMany(mappedBy = "caregiver")
@@ -36,8 +39,8 @@ public class Caregiver extends User {
     private List<Elderly> elderlyList = new ArrayList<>();
 
     @Builder
-    public Caregiver(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String username, String password) {
-        super(name, contact, gender, imgUrl, birthDate, organization);
+    public Caregiver(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String username, String password, Role role) {
+        super(name, contact, gender, imgUrl, birthDate, organization, role);
         this.username = username;
         this.password = password;
     }

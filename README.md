@@ -14,3 +14,11 @@ However, it only works for types. Most importantly, it requires that all supercl
 ## JSON 데이터 카멜 케이스로 받기
 - @JsonProperty로 필드에 지정해줘도 되지만 필드가 너무 많을 경우,
 - @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class) 사용해서 클래스 레벨에 걸어주기
+
+## 에러 1: InternalAuthenticationServiceException
+- JSON 데이터를 객체로 역직렬화 할 때 기본 생성자나 명시적으로 정의된 생성자(@JsonProperty)가 없을 때 발생
+- ReqDto에 꼭 기본 생성자 부여하자
+
+## 에러 2: InvalidDefinitionException
+- Jakson이 직렬화할 수 있는 접근 가능한 필드나 게터가 없기 때문에 발생
+- DTO의 private 필드에 대해서 Getter를 열어줘야 한다

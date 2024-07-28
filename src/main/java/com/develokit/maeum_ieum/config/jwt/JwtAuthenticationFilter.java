@@ -32,11 +32,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager){
         super(authenticationManager);
-        setFilterProcessesUrl("/api/login");
+        setFilterProcessesUrl("/caregivers/login");
         this.authenticationManager = authenticationManager;
     }
 
-    @Override // [POST] /api/login 일 때 동작
+    @Override // [POST] /caregivers/login 일 때 동작
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         ObjectMapper om = new ObjectMapper();
         try {

@@ -22,13 +22,16 @@ public abstract class User extends BaseEntity {
     private String imgUrl; //프로필 이미지
     private LocalDate birthDate; //생년 월일
     private String organization; //소속 기관
+    @Enumerated(value = EnumType.STRING)
+    private Role role;
 
-    public User(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization) {
+    public User(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, Role role) {
         this.name = name;
         this.contact = contact;
         this.gender = gender;
         this.imgUrl = imgUrl;
         this.birthDate = birthDate;
         this.organization = organization;
+        this.role = role;
     }
 }

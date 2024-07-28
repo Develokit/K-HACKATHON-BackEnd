@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.handler;
 
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import com.develokit.maeum_ieum.ex.CustomValidationException;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,5 +18,11 @@ public class CustomExceptionHandler {
     public ResponseEntity<?> apiException(CustomApiException e){
         log.error(e.getMessage());
         return new ResponseEntity<>(ApiUtil.error(e.getMessage(), HttpStatus.BAD_REQUEST.value()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CustomValidationException.class)
+    public ResponseEntity<?> validationException(CustomValidationException e){
+        log.error(e.getMessage());
+        return new ResponseEntity<>(ApiUtil.error(e.getMessage(), HttpStatus.BAD_REQUEST.value(), e.getErrorMap()), HttpStatus.BAD_REQUEST);
     }
 }

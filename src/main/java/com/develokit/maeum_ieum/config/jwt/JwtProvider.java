@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
+import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 
 import java.util.Date;
@@ -15,6 +16,7 @@ public class JwtProvider {
                 .withSubject("CareGiver: jwt")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVo.EXPIRATION_TIME))
                 .withClaim("id", loginUser.getUsername())
+                .withClaim("role", loginUser.getCaregiver().getRole().toString())
                 .sign(Algorithm.HMAC256(JwtVo.SECRET));
 
 
@@ -27,8 +29,12 @@ public class JwtProvider {
                 JWT.require(Algorithm.HMAC256(JwtVo.SECRET)).build().verify(token);
         String username =
                 decodedJWT.getClaim("id").toString();
+        String role = decodedJWT.getClaim("role").asString();
+
+
         Caregiver caregiver =
-                Caregiver.builder().username(username).build();
+                Caregiver.builder().username(username).role(Role.valueOf(role)).build();
+
         return new LoginUser(caregiver);
     }
 

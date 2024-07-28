@@ -1,7 +1,9 @@
 package com.develokit.maeum_ieum.domain.user.elderly;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
+import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
 import com.develokit.maeum_ieum.domain.user.Gender;
+import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.User;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import jakarta.persistence.*;
@@ -23,7 +25,7 @@ public class Elderly extends User {
     private Long id;
 
     private String healthInfo; // 특이 사항
-    private String address; //주거지
+    private String homeAddress; //주거지
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caregiver_id")
@@ -31,14 +33,25 @@ public class Elderly extends User {
 
     @OneToOne(mappedBy = "elderly")
     private Assistant assistant;
+    @Embedded
+    private EmergencyContactInfo emergencyContactInfo;
+
+    public boolean hasAssistant(){
+        if(assistant != null) return false;
+        return true;
+    }
+    public void attachAssistant(Assistant assistant){
+        this.assistant = assistant;
+    }
 
     @Builder
-    public Elderly(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String healthInfo, String address, Caregiver caregiver, Assistant assistant) {
-        super(name, contact, gender, imgUrl, birthDate, organization);
+    public Elderly(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String healthInfo, String homeAddress, Caregiver caregiver, Assistant assistant, EmergencyContactInfo emergencyContactInfo, Role role) {
+        super(name, contact, gender, imgUrl, birthDate, organization, role);
         this.healthInfo = healthInfo;
-        this.address = address;
+        this.homeAddress = homeAddress;
         this.caregiver = caregiver;
         this.assistant = assistant;
+        this.emergencyContactInfo = emergencyContactInfo;
         caregiver.getElderlyList().add(this);
     }
 }
