@@ -9,6 +9,8 @@ import com.develokit.maeum_ieum.util.CustomUtil;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +31,8 @@ public class ReqDto {
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ElderlyCreateReqDto{
         @NotNull
         @Size(min = 2, message = "이름은 2글자 이상이여야 합니다")

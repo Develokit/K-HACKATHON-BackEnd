@@ -19,6 +19,7 @@ public class JwtProvider {
                 .withClaim("role", loginUser.getCaregiver().getRole().toString())
                 .sign(Algorithm.HMAC256(JwtVo.SECRET));
 
+        System.out.println("토큰에 넣은 role 값 = " + loginUser.getCaregiver().getRole().toString());
 
         return JwtVo.TOKEN_PREFIX + jwtToken;
     }
@@ -27,13 +28,15 @@ public class JwtProvider {
 
         DecodedJWT decodedJWT =
                 JWT.require(Algorithm.HMAC256(JwtVo.SECRET)).build().verify(token);
+
         String username =
-                decodedJWT.getClaim("id").toString();
+                decodedJWT.getClaim("id").asString();
         String role = decodedJWT.getClaim("role").asString();
 
 
         Caregiver caregiver =
                 Caregiver.builder().username(username).role(Role.valueOf(role)).build();
+        System.out.println("caregiver.getRole() = " + caregiver.getRole());
 
         return new LoginUser(caregiver);
     }

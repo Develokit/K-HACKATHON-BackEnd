@@ -34,7 +34,7 @@ public class ReqDto {
 
     @Getter
     @NoArgsConstructor
-    public static class CreateAssistantReqDto{
+    public static class OpenAiCreateAssistantReqDto{
 
         private String model;
         @Nullable
@@ -47,14 +47,16 @@ public class ReqDto {
         @Size(min = 1, max = 512, message = "AI 규칙은 필수 설정입니다")
         private String description; //AI 필수 규칙 설정
         private List<ToolDto> tools;
-        //==========
-        private String conversationTopic; //대화 주제 -> description
-        private String responseType; //응답 형식
-        private String personality; //성격
-        private String forbiddenTopic; //금기 주제
 
-        public CreateAssistantReqDto(String model, @Nullable String name, @Nullable String instructions, @Nullable String description) {
+        //openAI에 보내는 DTO
+        public OpenAiCreateAssistantReqDto(String model, @Nullable String name, @Nullable String instructions, @Nullable String description) {
             this.model = model;
+            this.name = name;
+            this.instructions = instructions;
+            this.description = description;
+        }
+
+        public OpenAiCreateAssistantReqDto(@Nullable String name, @Nullable String instructions, @Nullable String description) {
             this.name = name;
             this.instructions = instructions;
             this.description = description;

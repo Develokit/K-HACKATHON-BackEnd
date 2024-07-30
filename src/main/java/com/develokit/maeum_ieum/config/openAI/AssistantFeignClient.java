@@ -18,7 +18,7 @@ import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 public interface AssistantFeignClient {
 
     @PostMapping //어시스턴트 생성
-    AssistantRespDto createAssistant(@RequestBody CreateAssistantReqDto createAssistantReqDto);
+    AssistantRespDto createAssistant(@RequestBody OpenAiCreateAssistantReqDto createAssistantReqDto);
     @GetMapping //openAI 페이지네이션 옵션에 cursor for use in pagination 옵션으로 after, before가 있는데 추후 필요하면 기재하기
     ListAssistantRespDto listAssistants(@RequestParam(name="limit", defaultValue = "20")int limit,
                                           @RequestParam(name="order", defaultValue = "desc")String order);

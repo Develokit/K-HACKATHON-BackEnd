@@ -35,10 +35,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if(isHeaderVerify(request)){
             //토큰 있음 -> 임시 세션 생성
             String token = request.getHeader(JwtVo.HEADER).replace(JwtVo.TOKEN_PREFIX, "");//Bearer 제거
+            logger.debug("디버그 : 토큰이 존재함");
+
 
             //토큰 검증
             LoginUser loginUser = JwtProvider.verify(token);
 
+            loginUser.getAuthorities().stream().forEach(grantedAuthority -> System.out.println("grantedAuthority.getAuthority().toString() = " + grantedAuthority.getAuthority().toString()));
             //임시 세션
             Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
 

@@ -7,18 +7,23 @@ import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
+import com.develokit.maeum_ieum.dto.assistant.ReqDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
-import com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto;
+import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.service.OpenAiService.*;
 
@@ -35,7 +40,7 @@ public class CaregiverService {
     private final AssistantRepository assistantRepository;
 
     @Transactional
-    public JoinRespDto join(JoinReqDto joinReqDto){
+    public JoinRespDto join(JoinReqDto joinReqDto){ //회원가입
 
         //아이디 중복 검사
         Optional<Caregiver> caregiverOP = careGiverRepository.findByUsername(joinReqDto.getUsername());
@@ -53,15 +58,17 @@ public class CaregiverService {
         return new JoinRespDto(caregiverPS);
     }
 
-    @Transactional
-    public CreateAssistantRespDto attachAssistantToElderly(CreateAssistantReqDto  createAssistantReqDto, Long elderlyId, Caregiver caregiver){
+    @Transactional //노인 사용자의 AI Assistant 생성
+    public CreateAssistantRespDto attachAssistantToElderly(ReqDto.CreateAssistantReqDto createAssistantReqDto, Long elderlyId, String username){
 
         //존재하는 전문가인지 검사
 //        careGiverRepository.findByUsername(caregiver.getUsername())
 //                .orElseThrow(() -> new CustomApiException("등록 권한이 없습니다"));
 
-        Optional<Caregiver> caregiverOP = careGiverRepository.findByUsername(caregiver.getUsername());
+        Optional<Caregiver> caregiverOP = careGiverRepository.findByUsername(username);
         if(caregiverOP.isEmpty()) throw new CustomApiException("등록 권한이 없습니다");
+        Caregiver caregiverPS = caregiverOP.get();
+
 
 
         //존재하는 사용자인지 검사
@@ -97,15 +104,20 @@ public class CaregiverService {
         //instructions 설정
         createAssistantReqDto.setInstructions(instructions);
 
+
         //어시스턴트 생성
-        String assistantId = openAiService.createAssistant(createAssistantReqDto);
+        String assistantId = openAiService.createAssistant(new OpenAiCreateAssistantReqDto(
+                createAssistantReqDto.getDescription(),
+                instructions,
+                createAssistantReqDto.getName()
+        ));
 
         //어시스턴트 저장
         Assistant assistantPS = assistantRepository.save(
                 Assistant.builder()
                         .name(createAssistantReqDto.getName())
                         .openAiAssistantId(assistantId)
-                        .caregiver(caregiver)
+                        .caregiver(caregiverPS)
                         .elderly(elderlyPS)
                         .rule(createAssistantReqDto.getDescription())
                         .conversationTopic(createAssistantReqDto.getConversationTopic())
@@ -121,22 +133,22 @@ public class CaregiverService {
         return new CreateAssistantRespDto(assistantPS, instructions);
     }
 
-    @NoArgsConstructor
-    @Getter
-    @AllArgsConstructor
-    @Builder
-    public static class CreateAssistantRespDto{
-        private String assistantId;
-        private String name;
-        private String description;
-        private String instructions;
-        public CreateAssistantRespDto(Assistant assistant, String instructions){
-            this.assistantId = assistant.getOpenAiAssistantId();
-            this.name = assistant.getName();
-            this.description = assistant.getRule();
-            this.instructions = instructions;
-        }
+
+
+    public MyInfoRespDto caregiverInfo(String username){//내 정보(이름, 이미지, 성별, 생년월일, 주거지, 소속기관, 연락처)
+
+        //요양사 검증
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username)
+                .orElseThrow(
+                        () -> new CustomApiException("존재하지 않는 정보입니다")
+                );
+
+        return new MyInfoRespDto(caregiverPS);
     }
+
+    //홈 화면 (요양사 이름, 이미지, 총 관리 인원, 기관, 노인 사용자(이름, 나이, 주소, 연락처, 마지막 방문(n시간 전), 마지막 대화(n시간 전)), AI 붙어있는 거
+
+
 
 
 

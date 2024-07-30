@@ -1,12 +1,29 @@
 package com.develokit.maeum_ieum.dto.openAi.assistant;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.develokit.maeum_ieum.domain.assistant.Assistant;
+import lombok.*;
 
 import java.util.List;
 
 public class RespDto {
+
+    @NoArgsConstructor
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class CreateAssistantRespDto{
+        private String assistantId;
+        private String name;
+        private String description;
+        private String instructions;
+        public CreateAssistantRespDto(Assistant assistant, String instructions){
+            this.assistantId = assistant.getOpenAiAssistantId();
+            this.name = assistant.getName();
+            this.description = assistant.getRule();
+            this.instructions = instructions;
+        }
+    }
+
 
     @NoArgsConstructor
     @Getter

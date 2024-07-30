@@ -1,6 +1,8 @@
 package com.develokit.maeum_ieum.dummy;
 
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
+import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
+import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
 import jakarta.validation.groups.ConvertGroup;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +14,10 @@ public class DummyDevInit extends DummyObject{
 
     @Profile("dev")
     @Bean
-    CommandLineRunner init(CareGiverRepository careGiverRepository){
+    CommandLineRunner init(CareGiverRepository careGiverRepository, ElderlyRepository elderlyRepository){
         return (args) -> {
-            careGiverRepository.save(newCaregiver());
+            //Caregiver caregiver = careGiverRepository.save(newCaregiver());
+            //elderlyRepository.save(newElderly(caregiver));
         };
     }
 }

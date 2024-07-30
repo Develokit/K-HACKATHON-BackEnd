@@ -37,7 +37,7 @@ public class Elderly extends User {
     private EmergencyContactInfo emergencyContactInfo;
 
     public boolean hasAssistant(){
-        if(assistant != null) return false;
+        if(assistant == null) return false;
         return true;
     }
     public void attachAssistant(Assistant assistant){

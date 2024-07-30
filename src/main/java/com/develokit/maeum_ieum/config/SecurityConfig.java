@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.config;
 
 import com.develokit.maeum_ieum.config.jwt.JwtAuthenticationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
+import com.develokit.maeum_ieum.domain.user.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +51,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/caregivers/elderlys").authenticated()
+                    //.requestMatchers("/caregivers/elderlys").hasAuthority("ROLE_ADMIN")
                     .anyRequest().permitAll()
                 )
                 .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
