@@ -1,7 +1,7 @@
 package com.develokit.maeum_ieum.config.openAI;
 
 
-import com.develokit.maeum_ieum.config.openAI.header.OpenAiHeaderConfiguration;
+import com.develokit.maeum_ieum.config.openAI.header.FeignHeaderConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 @FeignClient(
         name = "AssistantFeignClient",
         url = "https://api.openai.com/v1/assistants",
-        configuration = OpenAiHeaderConfiguration.class
+        configuration = FeignHeaderConfig.class
 )
 public interface AssistantFeignClient {
 

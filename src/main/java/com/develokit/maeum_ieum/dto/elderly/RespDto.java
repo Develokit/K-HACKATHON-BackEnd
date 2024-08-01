@@ -1,5 +1,6 @@
 package com.develokit.maeum_ieum.dto.elderly;
 
+import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.util.CustomUtil;
@@ -26,7 +27,8 @@ public class RespDto {
         private String elderlyImgUrl;
         private Long lastChatDate; //마지막 대화 'n시간 전'
         private int age;
-        public MainHomeRespDto(Caregiver caregiver, Elderly elderly){
+        private String openAiAssistantId;
+        public MainHomeRespDto(Caregiver caregiver, Elderly elderly, Assistant assistant){
             this.caregiverContact = caregiver.getContact();
             this.caregiverImgUrl = caregiver.getImgUrl();
             this.caregiverOrganization = caregiver.getOrganization();
@@ -36,6 +38,7 @@ public class RespDto {
             this.elderlyBirthdate = elderly.getBirthDate();
             this.age = CustomUtil.calculateAge(elderlyBirthdate);
             this.lastChatDate = CustomUtil.calculateHoursAgo(elderly.getLastChatTime());
+            this.openAiAssistantId = assistant.getOpenAiAssistantId();
         }
 
     }

@@ -15,6 +15,7 @@ import com.develokit.maeum_ieum.dto.elderly.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
+import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,6 +24,7 @@ import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,6 +45,7 @@ public class ElderlyService {
     private final S3Service s3Service;
     private final AssistantRepository assistantRepository;
     private final OpenAiService openAiService;
+    private final MessageService messageService;
 
     //노인 등록
     @Transactional
@@ -90,7 +93,7 @@ public class ElderlyService {
                         () -> new CustomApiException("해당 전문 요양사가 존재하지 않습니다")
                 );
 
-        return new MainHomeRespDto(caregiverPS, elderlyPS);
+        return new MainHomeRespDto(caregiverPS, elderlyPS, assistantPS);
     }
 
 
@@ -134,18 +137,19 @@ public class ElderlyService {
 
 
     //채팅 하기 -> 스레드 아이디, 어시스턴트 아이디, 요청 보낼 메시지 DTO 필요
-    public void streamChat(String openAiAssistantId, String threadId, ContentDto contentDto){
+    public Flux<String> sendMessage(String openAiAssistantId, String threadId, ContentDto contentDto){
 
         //메시지 생성
-        MessageRespDto messageRespDto = openAiService.createMessage(threadId, new CreateMessageReqDto(
-                "user",
-                contentDto.getContent()
-        ));
-
-        //스트림 런 -> event: thread.message.delta가 되면 delta.value내용을 꺼낸다
-        openAiService.createStreamRun(openAiAssistantId, threadId);
-
-
+        return messageService.getStreamMessage(threadId
+                , new CreateMessageReqDto(
+                        "user",
+                        contentDto.getContent()
+                )
+                , new CreateRunReqDto(
+                        openAiAssistantId,
+                        true
+                )
+        );
 
 
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ public class ReqDto {
     @Getter
     public static class ContentDto{ //프론트에서 받는 컨텐트 -> 이거 꺼내서 CreateMessageReqDto에 삽입
         @NotNull
+        @Size
         private String content;
     }
 

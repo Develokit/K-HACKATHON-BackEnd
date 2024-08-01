@@ -2,14 +2,12 @@ package com.develokit.maeum_ieum.config.openAI.header;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-public class OpenAiHeaderConfiguration {
+public class FeignHeaderConfig {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
 

@@ -12,11 +12,13 @@ public class RespDto {
 
     @NoArgsConstructor
     @Getter
-    public class ListMessageRespDto{
+    public static class ListMessageRespDto{
         List<MessageRespDto> messageRespDtoList;
     }
 
-    public class MessageRespDto {
+    @Getter
+    @NoArgsConstructor
+    public static class MessageRespDto {
         private String id;
         private String object;
         @JsonProperty("created_at")

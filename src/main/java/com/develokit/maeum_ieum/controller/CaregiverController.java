@@ -50,7 +50,7 @@ public class CaregiverController {
         return new ResponseEntity<>(ApiUtil.success(caregiverService.attachAssistantToElderly(createAssistantReqDto, elderlyId, loginUser.getCaregiver().getUsername())),HttpStatus.CREATED);
     }
 
-    @GetMapping("/login-user") //내 정보
+    @GetMapping("/mypage") //내 정보
     public ResponseEntity<?> getCaregiverInfo(@AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.caregiverInfo(loginUser.getUsername())),HttpStatus.OK);
     }

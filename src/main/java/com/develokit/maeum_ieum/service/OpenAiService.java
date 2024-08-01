@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.service;
 
 import com.develokit.maeum_ieum.config.openAI.AssistantFeignClient;
 import com.develokit.maeum_ieum.config.openAI.ThreadFeignClient;
+import com.develokit.maeum_ieum.config.openAI.ThreadWebClient;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
@@ -61,18 +62,7 @@ public class OpenAiService {
             throw new CustomApiException(e.getMessage());
         }
     }
-    //스트림 런
-    public StreamRunRespDto createStreamRun(String assistantId, String threadId){
-        try{
-            return threadFeignClient.createRun(threadId, new CreateRunReqDto(
-                    assistantId,
-                    true
-            ));
 
-        }catch (Exception e){
-            throw new CustomApiException(e.getMessage());
-        }
-    }
 
 
 
