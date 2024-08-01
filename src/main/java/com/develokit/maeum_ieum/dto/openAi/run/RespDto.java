@@ -14,6 +14,35 @@ import java.util.Map;
 
 public class RespDto {
 
+    @NoArgsConstructor
+    @Getter
+    public static class StreamRunRespDto{
+        private String event;
+        private StreamRunDataRespDto data;
+
+        @NoArgsConstructor
+        @Getter
+        public static class StreamRunDataRespDto{
+            private String id;
+            private String object;
+            private DeltaDto delta;
+
+            @NoArgsConstructor
+            @Getter
+            public static class DeltaDto{
+                private int index;
+                private String type;
+                private TextDto text;
+
+                @NoArgsConstructor
+                @Getter
+                public static class TextDto{
+                    private String value;
+                }
+            }
+        }
+    }
+
     @Getter
     @NoArgsConstructor
     public static class ListRunRespDto{

@@ -1,13 +1,17 @@
 package com.develokit.maeum_ieum.domain.user;
 
 import com.develokit.maeum_ieum.domain.base.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @NoArgsConstructor
 @MappedSuperclass
@@ -20,7 +24,11 @@ public abstract class User extends BaseEntity {
     private Gender gender; //성별
 
     private String imgUrl; //프로필 이미지
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일")
     private LocalDate birthDate; //생년 월일
+
     private String organization; //소속 기관
     @Enumerated(value = EnumType.STRING)
     private Role role;

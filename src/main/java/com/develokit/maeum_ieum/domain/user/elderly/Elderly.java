@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -35,6 +36,8 @@ public class Elderly extends User {
     private Assistant assistant;
     @Embedded
     private EmergencyContactInfo emergencyContactInfo;
+
+    private LocalDateTime lastChatTime; //마지막 대화 날짜
 
     public boolean hasAssistant(){
         if(assistant == null) return false;

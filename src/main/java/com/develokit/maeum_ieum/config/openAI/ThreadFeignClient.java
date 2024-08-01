@@ -8,6 +8,7 @@ import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
 import com.develokit.maeum_ieum.dto.openAi.run.RespDto.ListRunRespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.RespDto.RunRespDto;
+import com.develokit.maeum_ieum.dto.openAi.run.RespDto.StreamRunRespDto;
 import com.develokit.maeum_ieum.dto.openAi.thread.ReqDto.CreateThreadAndRunReqDto;
 import com.develokit.maeum_ieum.dto.openAi.thread.ReqDto.CreateThreadReqDto;
 import com.develokit.maeum_ieum.dto.openAi.thread.RespDto;
@@ -52,8 +53,8 @@ public interface ThreadFeignClient {
     @GetMapping("/{threadId}/messages") //메시지 리스트
     ListMessageRespDto listMessages(@PathVariable("threadId") String threadId);
 
-    @PostMapping("/{threadId}/runs") // 런 생성
-    RunRespDto createRun(@PathVariable("threadId")String threadId, @RequestBody CreateRunReqDto createRunReqDto);
+    @PostMapping("/{threadId}/runs") // 스트림 런 생성
+    StreamRunRespDto createRun(@PathVariable("threadId")String threadId, @RequestBody CreateRunReqDto createRunReqDto);
 
     @PostMapping("/runs") //스레드 생성 + 런 생성
     RunRespDto createThreadAndRun(@RequestBody CreateThreadAndRunReqDto createThreadAndRunReqDto);

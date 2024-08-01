@@ -7,6 +7,10 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -32,6 +36,20 @@ public class Assistant extends BaseEntity {
     private String responseType; //응답 형식
     private String personality; //성격
     private String forbiddenTopic; //금기 주제
+
+    private String threadId; //openAi 스레드 아이디
+    private LocalDateTime threadCreatedDate; //해당 어시스턴트에 스레드가 생성된 날 (30일 이후 파기됨)
+
+    public void attachThread(String threadId){
+        this.threadId = threadId;
+        threadCreatedDate = LocalDateTime.now();
+    }
+
+    public boolean hasThread(){
+        if(threadId == null) return false;
+        else return true;
+    }
+
 
     @Builder
     public Assistant(String name, Caregiver caregiver, Elderly elderly, String rule, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId) {
