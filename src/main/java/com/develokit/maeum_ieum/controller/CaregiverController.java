@@ -35,7 +35,7 @@ public class CaregiverController {
     }
 
     @PostMapping("/elderlys")
-    public ResponseEntity<?> createElderly(@RequestBody ElderlyCreateReqDto elderlyCreateReqDto,
+    public ResponseEntity<?> createElderly(@Valid @RequestBody ElderlyCreateReqDto elderlyCreateReqDto,
                                            BindingResult bindingResult,
                                            @AuthenticationPrincipal LoginUser loginUser
                                            ){

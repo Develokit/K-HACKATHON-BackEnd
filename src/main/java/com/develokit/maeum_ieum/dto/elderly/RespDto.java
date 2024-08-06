@@ -27,8 +27,7 @@ public class RespDto {
         private String elderlyImgUrl;
         private Long lastChatDate; //마지막 대화 'n시간 전'
         private int age;
-        private String openAiAssistantId;
-        public MainHomeRespDto(Caregiver caregiver, Elderly elderly, Assistant assistant){
+        public MainHomeRespDto(Caregiver caregiver, Elderly elderly){
             this.caregiverContact = caregiver.getContact();
             this.caregiverImgUrl = caregiver.getImgUrl();
             this.caregiverOrganization = caregiver.getOrganization();
@@ -38,7 +37,6 @@ public class RespDto {
             this.elderlyBirthdate = elderly.getBirthDate();
             this.age = CustomUtil.calculateAge(elderlyBirthdate);
             this.lastChatDate = CustomUtil.calculateHoursAgo(elderly.getLastChatTime());
-            this.openAiAssistantId = assistant.getOpenAiAssistantId();
         }
 
     }

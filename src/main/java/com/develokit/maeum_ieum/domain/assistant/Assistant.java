@@ -23,6 +23,9 @@ public class Assistant extends BaseEntity {
     private String openAiAssistantId; //실제 OpenAI에 등록되는 어시스턴트 아이디
     private String name;
 
+    @Column(length = 5)
+    private String accessCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caregiver_id")
     private Caregiver caregiver;
@@ -52,7 +55,7 @@ public class Assistant extends BaseEntity {
 
 
     @Builder
-    public Assistant(String name, Caregiver caregiver, Elderly elderly, String rule, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId) {
+    public Assistant(String name, Caregiver caregiver, Elderly elderly, String rule, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId, String accessCode) {
         this.name = name;
         this.caregiver = caregiver;
         this.elderly = elderly;
@@ -62,6 +65,7 @@ public class Assistant extends BaseEntity {
         this.personality = personality;
         this.forbiddenTopic = forbiddenTopic;
         this.openAiAssistantId = openAiAssistantId;
+        this.accessCode = accessCode;
         caregiver.getAssistantList().add(this);
     }
 }

@@ -12,6 +12,7 @@ import com.develokit.maeum_ieum.domain.user.elderly.EmergencyContactInfo;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
 import com.develokit.maeum_ieum.dto.elderly.RespDto;
+import com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.AudioRequestDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
@@ -45,7 +46,6 @@ public class ElderlyService {
     private final S3Service s3Service;
     private final AssistantRepository assistantRepository;
     private final OpenAiService openAiService;
-    private final MessageService messageService;
 
     //노인 등록
     @Transactional
@@ -73,16 +73,11 @@ public class ElderlyService {
     }
 
     //홈화면(노인): assistant의 pk -> 마지막 대화 시간, 이름, 생년월일(나이), 프로필 img, 요양사 이름, 요양사 프로필, 요양사 저나번호
-    public MainHomeRespDto mainHome(Long assistantId){
+    public MainHomeRespDto mainHome(Long elderlyId, Long assistantId){
 
-        //어시스턴트 찾기
-        Assistant assistantPS = assistantRepository.findById(assistantId)
-                .orElseThrow(
-                        () -> new CustomApiException("등록된 AI 어시스턴트가 존재하지 않습니다")
-                );
 
         //연결된 노인 사용자 찾기
-        Elderly elderlyPS = elderlyRepository.findByAssistant(assistantPS)
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId)
                 .orElseThrow(
                         () -> new CustomApiException("등록되지 않은 노인 사용자 입니다")
                 );
@@ -93,12 +88,13 @@ public class ElderlyService {
                         () -> new CustomApiException("해당 전문 요양사가 존재하지 않습니다")
                 );
 
-        return new MainHomeRespDto(caregiverPS, elderlyPS, assistantPS);
+        return new MainHomeRespDto(caregiverPS, elderlyPS);
     }
 
 
+    @Transactional
     //채팅 화면 들어가기: 어시스턴트 이름 + 이전 대화 기록 -> 우선 어시스턴트 이름과 openAiAssistant아이디 반환
-    public CheckAssistantRespDto checkAssistant(Long assistantId){
+    public CheckAssistantInfoRespDto checkAssistantInfo(Long assistantId){
         //어시스턴트 검증
         Assistant assistantPS = assistantRepository.findById(assistantId)
                 .orElseThrow(
@@ -123,12 +119,12 @@ public class ElderlyService {
         return null;
     }
     @NoArgsConstructor
-    public static class CheckAssistantRespDto{
+    public static class CheckAssistantInfoRespDto{
         private String threadId;
         private String assistantName;
         private String openAiAssistantId;
 
-        public CheckAssistantRespDto(String threadId, String assistantName, String openAiAssistantId) {
+        public CheckAssistantInfoRespDto(String threadId, String assistantName, String openAiAssistantId) {
             this.threadId = threadId;
             this.assistantName = assistantName;
             this.openAiAssistantId = openAiAssistantId;
@@ -136,23 +132,26 @@ public class ElderlyService {
     }
 
 
-    //채팅 하기 -> 스레드 아이디, 어시스턴트 아이디, 요청 보낼 메시지 DTO 필요
-    public Flux<String> sendMessage(String openAiAssistantId, String threadId, ContentDto contentDto){
+    public byte[] createVoice(AudioRequestDto audioRequestDto, Gender gender){
 
-        //메시지 생성
-        return messageService.getStreamMessage(threadId
-                , new CreateMessageReqDto(
-                        "user",
-                        contentDto.getContent()
-                )
-                , new CreateRunReqDto(
-                        openAiAssistantId,
-                        true
-                )
-        );
+        //어시스턴트에게 보이스로 질문 (프론트에서 보이스를 텍스트로 전환한 내용 주면
 
 
+
+        //-> 이거에 대한 메시지 생성 요청을 보내고
+        // -> 이거에 대한 답변을 오디오로 변환
+
+        return null;
     }
+
+    @Transactional
+    public void updateLastChatDate(Long elderlyId){
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다")
+        );
+        elderlyPS.updateLastChatDate(LocalDateTime.now());
+    }
+
 
 
 

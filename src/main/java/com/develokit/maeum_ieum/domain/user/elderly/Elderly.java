@@ -47,6 +47,9 @@ public class Elderly extends User {
         this.assistant = assistant;
     }
 
+    public void updateLastChatDate(LocalDateTime lastChatTime){
+        this.lastChatTime = lastChatTime;
+    }
     @Builder
     public Elderly(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String healthInfo, String homeAddress, Caregiver caregiver, Assistant assistant, EmergencyContactInfo emergencyContactInfo, Role role) {
         super(name, contact, gender, imgUrl, birthDate, organization, role);

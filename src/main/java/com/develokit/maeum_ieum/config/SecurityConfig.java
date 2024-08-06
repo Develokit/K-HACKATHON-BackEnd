@@ -3,10 +3,14 @@ package com.develokit.maeum_ieum.config;
 import com.develokit.maeum_ieum.config.jwt.JwtAuthenticationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
 import com.develokit.maeum_ieum.domain.user.Role;
+import com.develokit.maeum_ieum.util.ApiUtil;
+import com.develokit.maeum_ieum.util.api.ApiResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -58,7 +62,19 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) //토큰 쓸 거라서 해제
-                );
+                )
+                .exceptionHandling(handler -> {
+                    handler.accessDeniedHandler((request, response, accessDeniedException) -> {
+                        ObjectMapper om = new ObjectMapper();
+                        ApiResult<?> responseDto = ApiUtil.error("로그인을 진행해주세요", HttpStatus.FORBIDDEN.value());
+                        String responseBody = om.writeValueAsString(responseDto);
+
+                        response.setContentType("application/json; charset=utf-8");
+                        response.setStatus(403);
+                        response.getWriter().println(responseBody); //만약 response status가 403이면, 그 response를 가로채고 내용을 "error"로 바꿈
+                    });
+                })
+        ;
 
 
         return http.build();

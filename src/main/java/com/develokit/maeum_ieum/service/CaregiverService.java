@@ -124,6 +124,7 @@ public class CaregiverService {
                         .responseType(createAssistantReqDto.getResponseType())
                         .personality(createAssistantReqDto.getPersonality())
                         .forbiddenTopic(createAssistantReqDto.getForbiddenTopic())
+                        .accessCode(bCryptPasswordEncoder.encode(elderlyPS.getName()))
                         .build()
         );
 
