@@ -121,7 +121,6 @@ public class ThreadWebClient {
                         JsonNode contentArray = rootNode.path("content");
                         if (contentArray.isArray() && contentArray.size() > 0) {
                             JsonNode textNode = contentArray.get(0).path("text");
-                            System.out.println(textNode.path("value").asText());
                             return Mono.just(textNode.path("value").asText());
                         }
                         return Mono.just("");

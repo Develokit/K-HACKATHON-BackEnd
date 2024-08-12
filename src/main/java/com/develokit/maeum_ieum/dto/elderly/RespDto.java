@@ -11,8 +11,53 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
 public class RespDto {
+    @NoArgsConstructor
+    @Getter
+    public static class CheckAssistantInfoRespDto{
+        private String threadId;
+        private String assistantName;
+        private String openAiAssistantId;
+        private ChatInfoDto chatInfo;
+
+        @NoArgsConstructor
+        @Getter
+        static class ChatInfoDto{
+            private int size;
+            private LinkedList<ChatDto> chat = new LinkedList<>();
+
+            public ChatInfoDto(List<com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto> data){
+                this.size = data.size();
+                for (com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto messageDto : data) {
+                    this.chat.add(new ChatDto(messageDto));
+                }
+            }
+
+            @NoArgsConstructor
+            @Getter
+            static class ChatDto{
+                private String role;
+                private String content;
+
+                public ChatDto(com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto messageRespDto){
+                    this.role = messageRespDto.getRole();
+                    this.content = messageRespDto.getContent().get(0).getText().getValue().toString();
+                }
+            }
+        }
+
+        public CheckAssistantInfoRespDto(Assistant assistant, List<com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto> messageRespDto) {
+            this.threadId = assistant.getThreadId();
+            this.assistantName = assistant.getName();
+            this.openAiAssistantId = assistant.getOpenAiAssistantId();
+            if(messageRespDto != null)
+                this.chatInfo = new ChatInfoDto(messageRespDto);
+        }
+    }
+
     @NoArgsConstructor
     @Getter
     @AllArgsConstructor

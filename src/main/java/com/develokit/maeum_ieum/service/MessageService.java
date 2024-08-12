@@ -27,6 +27,7 @@ import static com.develokit.maeum_ieum.dto.openAi.message.ReqDto.*;
 public class MessageService {
 
     private final ThreadWebClient threadWebClient;
+    private final OpenAiService openAiService;
 
     //채팅 하기 -> 스레드 아이디, 어시스턴트 아이디, 요청 보낼 메시지 DTO 필요
     public Flux<CreateStreamMessageRespDto> getStreamMessage(CreateStreamMessageReqDto createStreamMessageReqDto){
@@ -59,6 +60,7 @@ public class MessageService {
                 )
         );
     }
+    //이전 대화 가져오기  -> 마지막 대화 시간 정보가 있으면 이전 대화 기록 끌고오기
 
 
 }

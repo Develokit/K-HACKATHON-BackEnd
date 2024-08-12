@@ -53,9 +53,12 @@ public class ElderlyController {
     public ResponseEntity<?> mainHome(@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId){ //db의 어시스턴트 pk
         return new ResponseEntity<>(ApiUtil.success(elderlyService.mainHome(elderlyId, assistantId)), HttpStatus.OK);
     }
+
     //채팅 화면 들어가기
-
-
+    @GetMapping("/{elderlyId}/assistants/{assistantId}/chat")
+    public ResponseEntity<?> checkAssistantInfo (@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId){
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.checkAssistantInfo(elderlyId, assistantId)), HttpStatus.OK);
+    }
 
     //메시지 스트림 생성
     @PostMapping("/{elderlyId}/stream-message")
@@ -88,9 +91,9 @@ public class ElderlyController {
             try{
                 Path path = Paths.get(fileName);
                 Files.write(path, voiceMessage.getAnswer());
-                return "file Path : " + path.toAbsolutePath().toString();
+                return "파일 경로 : " + path.toAbsolutePath().toString();
             }catch (IOException e){
-                throw new RuntimeException("Error while saving file", e);
+                throw new RuntimeException("파일 저장 중 에러 발생", e);
             }
         });
     }

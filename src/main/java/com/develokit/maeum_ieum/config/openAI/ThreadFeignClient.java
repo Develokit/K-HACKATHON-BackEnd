@@ -34,7 +34,7 @@ public interface ThreadFeignClient {
     @PostMapping("/{threadId}/messages") //메시지 생성
     MessageRespDto createMessages(@PathVariable("threadId") String threadId, @RequestBody CreateMessageReqDto createMessageReqDto);
 
-    @GetMapping("/{threadId}/messages") //메시지 리스트
+    @GetMapping("/{threadId}/messages?limit=6") //메시지 리스트 -> 우선 최근 10개의 메시지 목록만 가져오도록 설정
     ListMessageRespDto listMessages(@PathVariable("threadId") String threadId);
 
     @PostMapping("/{threadId}/runs") // 스트림 런 생성

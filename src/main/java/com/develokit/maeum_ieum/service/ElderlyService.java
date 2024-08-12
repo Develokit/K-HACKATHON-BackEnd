@@ -15,6 +15,7 @@ import com.develokit.maeum_ieum.dto.elderly.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.AudioRequestDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
+import com.develokit.maeum_ieum.dto.openAi.message.RespDto.ListMessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
@@ -29,6 +30,8 @@ import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -79,7 +82,7 @@ public class ElderlyService {
         //연결된 노인 사용자 찾기
         Elderly elderlyPS = elderlyRepository.findById(elderlyId)
                 .orElseThrow(
-                        () -> new CustomApiException("등록되지 않은 노인 사용자 입니다")
+                        () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요")
                 );
 
         //연결된 요양사 찾기
@@ -94,12 +97,17 @@ public class ElderlyService {
 
     @Transactional
     //채팅 화면 들어가기: 어시스턴트 이름 + 이전 대화 기록 -> 우선 어시스턴트 이름과 openAiAssistant아이디 반환
-    public CheckAssistantInfoRespDto checkAssistantInfo(Long assistantId){
+    public CheckAssistantInfoRespDto checkAssistantInfo(Long elderlyId, Long assistantId){
         //어시스턴트 검증
         Assistant assistantPS = assistantRepository.findById(assistantId)
                 .orElseThrow(
                         () -> new CustomApiException("존재하지 않는 AI Assistant 입니다")
                 );
+
+        //사용자 검증
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요")
+        );
 
         //스레드 있는지 확인
         String threadId = "";
@@ -112,37 +120,16 @@ public class ElderlyService {
             assistantPS.attachThread(threadId);
         }
 
-        //이전 대화 기록
-
-
-
-        return null;
-    }
-    @NoArgsConstructor
-    public static class CheckAssistantInfoRespDto{
-        private String threadId;
-        private String assistantName;
-        private String openAiAssistantId;
-
-        public CheckAssistantInfoRespDto(String threadId, String assistantName, String openAiAssistantId) {
-            this.threadId = threadId;
-            this.assistantName = assistantName;
-            this.openAiAssistantId = openAiAssistantId;
+        //이전 대화 기록 -> 마지막 대화 시간 정보가 있으면 이전 대화 기록 끌고오기
+        List<MessageRespDto> messageRespDto = null;
+        if(elderlyPS.getLastChatTime() != null){
+            ListMessageRespDto listMessageRespDto = openAiService.listMessages(threadId);
+            messageRespDto = listMessageRespDto.getData();
         }
+
+        return new CheckAssistantInfoRespDto(assistantPS, messageRespDto);
     }
 
-
-    public byte[] createVoice(AudioRequestDto audioRequestDto, Gender gender){
-
-        //어시스턴트에게 보이스로 질문 (프론트에서 보이스를 텍스트로 전환한 내용 주면
-
-
-
-        //-> 이거에 대한 메시지 생성 요청을 보내고
-        // -> 이거에 대한 답변을 오디오로 변환
-
-        return null;
-    }
 
     @Transactional
     public void updateLastChatDate(Long elderlyId){

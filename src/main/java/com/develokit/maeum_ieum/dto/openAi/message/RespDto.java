@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.aspectj.bridge.Message;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -13,7 +15,7 @@ public class RespDto {
     @NoArgsConstructor
     @Getter
     public static class ListMessageRespDto{
-        List<MessageRespDto> messageRespDtoList;
+        LinkedList<MessageRespDto> data;
     }
 
     @Getter
