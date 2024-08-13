@@ -12,8 +12,13 @@ import com.develokit.maeum_ieum.dto.openAi.thread.ReqDto;
 import com.develokit.maeum_ieum.dto.openAi.thread.RespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import lombok.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+
+
 
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
@@ -23,6 +28,8 @@ import static com.develokit.maeum_ieum.dto.openAi.thread.RespDto.*;
 @Service
 @RequiredArgsConstructor
 public class OpenAiService {
+
+    private Logger log = LoggerFactory.getLogger(OpenAiService.class);
 
     private final AssistantFeignClient assistantFeignClient;
     private final ThreadFeignClient threadFeignClient;
@@ -39,7 +46,7 @@ public class OpenAiService {
                     openAiCreateAssistantReqDto.getName()
                     )
             );
-            System.out.println("===어시스턴트 생성!!===");
+            log.debug("어시스턴트 생성!!");
             return assistantRespDto.getId();
 
         }catch (Exception e){

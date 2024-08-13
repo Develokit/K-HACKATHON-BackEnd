@@ -1,10 +1,13 @@
 package com.develokit.maeum_ieum.util.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
+@Schema(description = "공통 API 응답 구조")
 public class ApiResult<T> {
 
+    @Schema(description = "실제 응답 데이터")
     private final T data;
     private final boolean success;
     private final ApiError apiError;

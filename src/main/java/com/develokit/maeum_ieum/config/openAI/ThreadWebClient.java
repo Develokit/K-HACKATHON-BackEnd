@@ -44,11 +44,11 @@ public class ThreadWebClient {
                 .doOnError(WebClientResponseException.class, e -> {
                     System.err.println("에러 코드: " + e.getStatusCode());
                     System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    throw new CustomApiException("메시지 생성 과정에서 에러 발생");
                 });
     }
 
     public Mono<MessageRespDto> createSingleMessage(String threadId, CreateMessageReqDto createMessageReqDto){
-        System.out.println("===메시지 생성 함수 시작===");
         return webClient.post()
                 .uri("/threads/{threadId}/messages",threadId)
                 .bodyValue(createMessageReqDto)
@@ -57,6 +57,7 @@ public class ThreadWebClient {
                 .doOnError(WebClientResponseException.class, e -> {
                     System.err.println("에러 코드: " + e.getStatusCode());
                     System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    throw new CustomApiException("단일 메시지 생성 과정에서 에러 발생");
                 });
     }
 
@@ -79,7 +80,7 @@ public class ThreadWebClient {
                         JsonNode rootNode = mapper.readTree(data);
                         JsonNode deltaNode = rootNode.path("delta");
                         JsonNode contentArray = deltaNode.path("content");
-                        if (contentArray.isArray() && contentArray.size() > 0) {
+                        if (!contentArray.isEmpty()) {
                             JsonNode textNode = contentArray.get(0).path("text");
                             String answer = textNode.path("value").asText();
                             return new CreateStreamMessageRespDto(answer);
@@ -119,7 +120,7 @@ public class ThreadWebClient {
                         ObjectMapper mapper = new ObjectMapper();
                         JsonNode rootNode = mapper.readTree(data);
                         JsonNode contentArray = rootNode.path("content");
-                        if (contentArray.isArray() && contentArray.size() > 0) {
+                        if (!contentArray.isEmpty()) {
                             JsonNode textNode = contentArray.get(0).path("text");
                             return Mono.just(textNode.path("value").asText());
                         }
@@ -128,8 +129,7 @@ public class ThreadWebClient {
                         e.printStackTrace();
                         return Mono.error(e);
                     }
-                })
-                .doOnNext(text -> System.out.println("text = " + text));
+                });
     }
 
     //오디오 생성
@@ -143,6 +143,7 @@ public class ThreadWebClient {
                 .doOnError(WebClientResponseException.class, e -> {
                     System.err.println("에러 코드: " + e.getStatusCode());
                     System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    throw new CustomApiException("오디오 생성 과정에서 에러 발생");
                 });
     }
 

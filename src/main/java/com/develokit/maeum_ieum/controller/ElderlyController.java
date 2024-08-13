@@ -11,6 +11,7 @@ import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.ElderlyService;
 import com.develokit.maeum_ieum.service.MessageService;
 import com.develokit.maeum_ieum.util.ApiUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -36,6 +37,7 @@ import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 @RestController
 @RequestMapping("/elderlys")
 @RequiredArgsConstructor
+@Tag(name = "노인 사용자 API", description = "노인 사용자가 호출하는 API 목록")
 public class ElderlyController {
 
     private final ElderlyService elderlyService;
@@ -51,7 +53,7 @@ public class ElderlyController {
     //메인 홈
     @GetMapping("/{elderlyId}/assistants/{assistantId}")
     public ResponseEntity<?> mainHome(@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId){ //db의 어시스턴트 pk
-        return new ResponseEntity<>(ApiUtil.success(elderlyService.mainHome(elderlyId, assistantId)), HttpStatus.OK);
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.getElderlyMainInfo(elderlyId, assistantId)), HttpStatus.OK);
     }
 
     //채팅 화면 들어가기

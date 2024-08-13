@@ -12,6 +12,7 @@ import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import lombok.*;
 import org.springframework.cglib.core.Local;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,7 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
@@ -62,13 +66,8 @@ public class CaregiverService {
     public CreateAssistantRespDto attachAssistantToElderly(ReqDto.CreateAssistantReqDto createAssistantReqDto, Long elderlyId, String username){
 
         //존재하는 전문가인지 검사
-//        careGiverRepository.findByUsername(caregiver.getUsername())
-//                .orElseThrow(() -> new CustomApiException("등록 권한이 없습니다"));
-
-        Optional<Caregiver> caregiverOP = careGiverRepository.findByUsername(username);
-        if(caregiverOP.isEmpty()) throw new CustomApiException("등록 권한이 없습니다");
-        Caregiver caregiverPS = caregiverOP.get();
-
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomApiException("등록 권한이 없습니다"));
 
 
         //존재하는 사용자인지 검사
@@ -101,11 +100,8 @@ public class CaregiverService {
             instructions += "당신의 성격은 '"+createAssistantReqDto.getPersonality()+"' 합니다!";
         }
 
-        //instructions 설정
-        createAssistantReqDto.setInstructions(instructions);
 
-
-        //어시스턴트 생성
+        //어시스턴트 생성 + instructions 설정
         String assistantId = openAiService.createAssistant(new OpenAiCreateAssistantReqDto(
                 createAssistantReqDto.getDescription(),
                 instructions,
@@ -147,12 +143,15 @@ public class CaregiverService {
         return new MyInfoRespDto(caregiverPS);
     }
 
-    //홈 화면 (요양사 이름, 이미지, 총 관리 인원, 기관, 노인 사용자(이름, 나이, 주소, 연락처, 마지막 방문(n시간 전), 마지막 대화(n시간 전)), AI 붙어있는 거
+    //홈 화면 (요양사 이름, 이미지, 총 관리 인원, 기관, 노인 사용자(이름, 나이, 주소, 연락처,  마지막 대화(n시간 전)), AI 생성 여부
+    public CaregiverMainRespDto getCaregiverMainInfo(String username){
 
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 사용자입니다")
+        );
 
-
-
-
+        return new CaregiverMainRespDto(caregiverPS);
+    }
 
 
 }

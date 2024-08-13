@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.util.CustomUtil;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,7 +63,7 @@ public class RespDto {
     @Getter
     @AllArgsConstructor
     @Builder
-    public static class MainHomeRespDto{
+    public static class ElderlyMainRespDto{
         private String caregiverName;
         private String caregiverContact;
         private String caregiverOrganization;
@@ -72,7 +73,7 @@ public class RespDto {
         private String elderlyImgUrl;
         private Long lastChatDate; //마지막 대화 'n시간 전'
         private int age;
-        public MainHomeRespDto(Caregiver caregiver, Elderly elderly){
+        public ElderlyMainRespDto(Caregiver caregiver, Elderly elderly){
             this.caregiverContact = caregiver.getContact();
             this.caregiverImgUrl = caregiver.getImgUrl();
             this.caregiverOrganization = caregiver.getOrganization();
@@ -85,6 +86,7 @@ public class RespDto {
         }
 
     }
+
     @NoArgsConstructor
     @Getter
     public static class ElderlyCreateRespDto{

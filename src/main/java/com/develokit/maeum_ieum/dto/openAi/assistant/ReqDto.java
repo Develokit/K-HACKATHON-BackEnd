@@ -61,10 +61,6 @@ public class ReqDto {
             this.instructions = instructions;
             this.description = description;
         }
-
-        public void setInstructions(String instructions){
-            this.instructions = instructions;
-        }
     }
 
     public static class ToolDto{
