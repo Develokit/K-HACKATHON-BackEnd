@@ -1,19 +1,13 @@
 package com.develokit.maeum_ieum.config.openAI;
 
 import com.develokit.maeum_ieum.dto.message.RespDto.CreateStreamMessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.audio.ReqDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.run.RespDto;
-import com.develokit.maeum_ieum.dto.openAi.run.RespDto.StreamRunRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.codec.ServerSentEvent;
@@ -22,7 +16,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.run.ReqDto.*;
 
@@ -77,6 +70,11 @@ public class ThreadWebClient {
                     String data = event.data();
                     try {
                         ObjectMapper mapper = new ObjectMapper();
+//                        StreamRunRespDto.StreamRunDataRespDto streamRunDataRespDto = mapper.readValue(data, StreamRunRespDto.StreamRunDataRespDto.class);
+//                        String value = streamRunDataRespDto.getDelta().getContent().getText().getValue();
+//                        System.out.println("value = " + value);
+
+
                         JsonNode rootNode = mapper.readTree(data);
                         JsonNode deltaNode = rootNode.path("delta");
                         JsonNode contentArray = deltaNode.path("content");

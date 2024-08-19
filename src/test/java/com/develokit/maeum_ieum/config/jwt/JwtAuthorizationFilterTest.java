@@ -51,7 +51,7 @@ public class JwtAuthorizationFilterTest {
         ElderlyCreateReqDto elderlyCreateReqDto = ElderlyCreateReqDto.builder()
                 .name("userA")
                 .birthDate(LocalDate.now().toString())
-                .gender(Gender.FEMALE)
+                .gender("FEMALE")
                 .imgFile(null)
                 .contact("010-8840-1231")
                 .homeAddress("제주시 연동")

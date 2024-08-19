@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.domain.user.elderly;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
+import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.User;
@@ -14,6 +15,8 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -38,6 +41,13 @@ public class Elderly extends User {
     private EmergencyContactInfo emergencyContactInfo;
 
     private LocalDateTime lastChatTime; //마지막 대화 날짜
+
+    @OneToMany(mappedBy = "elderly")
+    private List<Report> weeklyReports = new ArrayList<>(); //주간 보고서
+
+    @OneToMany(mappedBy = "elderly")
+    private List<Report> monthlyReports = new ArrayList<>(); //월간 보고서
+
 
     public boolean hasAssistant(){
         if(assistant == null) return false;
