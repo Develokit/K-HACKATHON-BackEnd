@@ -2,10 +2,12 @@ package com.develokit.maeum_ieum.config;
 
 import com.develokit.maeum_ieum.config.jwt.JwtAuthenticationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
+import com.develokit.maeum_ieum.config.jwt.JwtExceptionFilter;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +29,11 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger((getClass()));
+    private final JwtExceptionFilter jwtExceptionFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
@@ -41,6 +45,7 @@ public class SecurityConfig {
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
+            builder.addFilterBefore(jwtExceptionFilter, JwtAuthorizationFilter.class); //토큰 검증 전에 에러 잡기 위한 필터
             builder.addFilter(new JwtAuthenticationFilter(authenticationManager)); //jwt 인증 필터
             builder.addFilter(new JwtAuthorizationFilter(authenticationManager)); //인가 필터
             super.configure(builder);

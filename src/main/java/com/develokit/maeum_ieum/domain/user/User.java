@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.domain.user;
 import com.develokit.maeum_ieum.domain.base.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @MappedSuperclass
 @Getter
 public abstract class User extends BaseEntity {

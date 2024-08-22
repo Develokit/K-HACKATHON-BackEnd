@@ -27,7 +27,6 @@ import static com.develokit.maeum_ieum.dto.openAi.message.ReqDto.*;
 public class MessageService {
 
     private final ThreadWebClient threadWebClient;
-    private final OpenAiService openAiService;
 
     public Flux<CreateStreamMessageRespDto> getStreamMessage(CreateStreamMessageReqDto createStreamMessageReqDto){
         return threadWebClient.createMessageAndStreamRun(

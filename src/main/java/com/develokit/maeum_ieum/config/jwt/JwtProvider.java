@@ -2,15 +2,22 @@ package com.develokit.maeum_ieum.config.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
+import com.develokit.maeum_ieum.ex.CustomApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.security.SignatureException;
 import java.util.Date;
 
 
 public class JwtProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProvider.class);
     public static String create(LoginUser loginUser){ //토큰 생성
         String jwtToken = JWT.create()
                 .withSubject("CareGiver: jwt")
@@ -26,8 +33,13 @@ public class JwtProvider {
 
     public static LoginUser verify(String token){ //토큰 검증 -> 리턴하는 LoginUser를 강제로 시큐리티 세션에 주입
 
-        DecodedJWT decodedJWT =
-                JWT.require(Algorithm.HMAC256(JwtVo.SECRET)).build().verify(token);
+        DecodedJWT decodedJWT;
+        try {
+            decodedJWT = JWT.require(Algorithm.HMAC256(JwtVo.SECRET)).build().verify(token);
+        } catch (TokenExpiredException e){
+            logger.error("토큰이 만료되어 더 이상 유효하지 않습니다", e);
+            throw new CustomApiException("토큰 기간 만료");
+        }
 
         String username =
                 decodedJWT.getClaim("id").asString();
@@ -36,7 +48,6 @@ public class JwtProvider {
 
         Caregiver caregiver =
                 Caregiver.builder().username(username).role(Role.valueOf(role)).build();
-        System.out.println("caregiver.getRole() = " + caregiver.getRole());
 
         return new LoginUser(caregiver);
     }

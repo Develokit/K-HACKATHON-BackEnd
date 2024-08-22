@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.domain.base.BaseEntity;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Assistant extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +28,7 @@ public class Assistant extends BaseEntity {
     private String accessCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "caregiver_id")
+    @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
     @OneToOne

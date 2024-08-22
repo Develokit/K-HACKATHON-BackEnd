@@ -45,7 +45,7 @@ public interface ThreadFeignClient {
 
     @GetMapping("/{threadId}/run") //런 리스트
     ListRunRespDto listRuns(@PathVariable("threadId")String threadId,
-                            @RequestParam(name = "limit", defaultValue = "20")int limit,
+                            @RequestParam(name = "limit", defaultValue = "10")int limit,
                             @RequestParam(name = "order", defaultValue = "desc")String order);
 
     @GetMapping("/{threadId}/runs/{runId}") // 런 검색

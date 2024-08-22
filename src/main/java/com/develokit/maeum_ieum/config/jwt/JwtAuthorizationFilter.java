@@ -1,6 +1,10 @@
 package com.develokit.maeum_ieum.config.jwt;
 
+import com.auth0.jwt.exceptions.SignatureGenerationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
+import com.develokit.maeum_ieum.ex.CustomApiException;
+import io.netty.util.concurrent.BlockingOperationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,8 +16,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.security.SignatureException;
+
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
@@ -31,7 +38,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException{
         if(isHeaderVerify(request)){
             //토큰 있음 -> 임시 세션 생성
             String token = request.getHeader(JwtVo.HEADER).replace(JwtVo.TOKEN_PREFIX, "");//Bearer 제거

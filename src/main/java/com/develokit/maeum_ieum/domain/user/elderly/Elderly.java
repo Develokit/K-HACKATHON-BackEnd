@@ -8,6 +8,7 @@ import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.User;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Elderly extends User {
 
@@ -32,13 +33,14 @@ public class Elderly extends User {
     private String homeAddress; //주거지
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "caregiver_id")
+    @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
     @OneToOne(mappedBy = "elderly")
     private Assistant assistant;
     @Embedded
     private EmergencyContactInfo emergencyContactInfo;
+
 
     private LocalDateTime lastChatTime; //마지막 대화 날짜
 

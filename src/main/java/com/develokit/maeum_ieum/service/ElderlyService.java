@@ -3,6 +3,8 @@ package com.develokit.maeum_ieum.service;
 import com.amazonaws.services.s3.transfer.internal.CompleteMultipartCopy;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
+import com.develokit.maeum_ieum.domain.report.Report;
+import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
@@ -23,6 +25,7 @@ import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,6 +52,7 @@ public class ElderlyService {
     private final S3Service s3Service;
     private final AssistantRepository assistantRepository;
     private final OpenAiService openAiService;
+    private final ReportRepository reportRepository;
 
     //노인 등록
     @Transactional
@@ -71,6 +75,21 @@ public class ElderlyService {
 
         //저장
         Elderly elderlyPS = elderlyRepository.save(elderlyCreateReqDto.toEntity(caregiverPS, imgUrl));
+
+        //보고서 생성
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime[] weekStartAndEnd = CustomUtil.getWeekStartAndEnd(now);
+        LocalDateTime startDayOfWeek = weekStartAndEnd[0];
+        LocalDateTime endDayOfWeek = weekStartAndEnd[1];
+        LocalDateTime lastDayOfMonth = CustomUtil.getMonthEnd(now);
+
+        //TODO 이거 날짜 의도한 대로 나오는지 확인하기 ㅡㅡ
+        Report weeklyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, endDayOfWeek, false));
+        Report monthlyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, lastDayOfMonth, true ));
+
+        elderlyPS.getWeeklyReports().add(weeklyReportPS);
+        elderlyPS.getMonthlyReports().add(monthlyReportPS);
+
 
         return new ElderlyCreateRespDto(elderlyPS);
     }
