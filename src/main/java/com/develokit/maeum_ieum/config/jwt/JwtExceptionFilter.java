@@ -1,11 +1,8 @@
 package com.develokit.maeum_ieum.config.jwt;
-
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

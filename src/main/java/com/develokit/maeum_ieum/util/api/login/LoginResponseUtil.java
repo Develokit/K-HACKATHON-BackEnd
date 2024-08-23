@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.util.api.login;
 import com.develokit.maeum_ieum.dto.loginUser.RespDto;
 import com.develokit.maeum_ieum.dto.loginUser.RespDto.LoginRespDto;
 import com.develokit.maeum_ieum.util.ApiUtil;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +24,7 @@ public class LoginResponseUtil {
         try {
             ObjectMapper om = new ObjectMapper();
             ApiResult<LoginRespDto> responseDto = ApiUtil.success(loginRespDto);
-            String responseBody = om.writeValueAsString(responseDto);
+            String responseBody = CustomUtil.convertToJson(responseDto);
 
             response.setContentType("application/json; charset=utf-8");
             response.setStatus(200);
@@ -39,7 +40,7 @@ public class LoginResponseUtil {
         try {
             ObjectMapper om = new ObjectMapper();
             ApiResult<Object> responseDto = ApiUtil.error(message, HttpStatus.UNAUTHORIZED.value());
-            String responseBody = om.writeValueAsString(responseDto);
+            String responseBody = CustomUtil.convertToJson(responseDto);
 
             response.setContentType("application/json; charset=utf-8");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());

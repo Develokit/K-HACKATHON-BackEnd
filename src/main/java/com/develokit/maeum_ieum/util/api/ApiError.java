@@ -1,8 +1,10 @@
 package com.develokit.maeum_ieum.util.api;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ApiError {
 
     private final int status;
@@ -12,4 +14,5 @@ public class ApiError {
         this.status = status;
         this.msg = msg;
     }
+
 }

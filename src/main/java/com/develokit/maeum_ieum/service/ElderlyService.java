@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.springframework.cglib.core.Local;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,12 +62,12 @@ public class ElderlyService {
         //요양사 검증
         Caregiver caregiverPS = careGiverRepository.findByUsername(username)
                 .orElseThrow(
-                        () -> new CustomApiException("등록 권한이 없습니다")
+                        () -> new CustomApiException("등록 권한이 없습니다", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED)
                 );
 
         //노인 중복 검사 -> 연락처
         Optional<Elderly> elderlyOP = elderlyRepository.findByContact(elderlyCreateReqDto.getContact());
-        if(elderlyOP.isPresent()) throw new CustomApiException("이미 등록된 어르신 입니다");
+        if(elderlyOP.isPresent()) throw new CustomApiException("이미 등록된 어르신 입니다", HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT);
 
         String imgUrl = null;
         //이미지 저장
@@ -100,13 +101,13 @@ public class ElderlyService {
         //연결된 노인 사용자 찾기
         Elderly elderlyPS = elderlyRepository.findById(elderlyId)
                 .orElseThrow(
-                        () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요")
+                        () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
                 );
 
         //연결된 요양사 찾기
         Caregiver caregiverPS = careGiverRepository.findById(elderlyPS.getCaregiver().getId())
                 .orElseThrow(
-                        () -> new CustomApiException("해당 전문 요양사가 존재하지 않습니다")
+                        () -> new CustomApiException("해당 전문 요양사가 존재하지 않습니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND )
                 );
 
         return new ElderlyMainRespDto(caregiverPS, elderlyPS);
@@ -119,12 +120,12 @@ public class ElderlyService {
         //어시스턴트 검증
         Assistant assistantPS = assistantRepository.findById(assistantId)
                 .orElseThrow(
-                        () -> new CustomApiException("존재하지 않는 AI Assistant 입니다")
+                        () -> new CustomApiException("존재하지 않는 AI Assistant 입니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
                 );
 
         //사용자 검증
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-                () -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요")
+                () -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
         //스레드 있는지 확인
@@ -152,7 +153,7 @@ public class ElderlyService {
     @Transactional
     public void updateLastChatDate(Long elderlyId){
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-                () -> new CustomApiException("등록되지 않은 노인 사용자입니다")
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
         elderlyPS.updateLastChatDate(LocalDateTime.now());
     }

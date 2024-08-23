@@ -1,5 +1,6 @@
 package com.develokit.maeum_ieum.controller;
 
+import com.develokit.maeum_ieum.config.jwt.RequireAuth;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.dto.assistant.ReqDto.CreateAssistantReqDto;
@@ -39,11 +40,13 @@ public class CaregiverController implements CaregiverControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(caregiverService.join(joinReqDto)), HttpStatus.CREATED);
     }
 
+    @RequireAuth
     @GetMapping
     public ResponseEntity<?> getCaregiverMainInfo(@AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.getCaregiverMainInfo(loginUser.getUsername())),HttpStatus.OK);
     }
 
+    @RequireAuth
     @PostMapping("/elderlys")
     public ResponseEntity<ApiResult<ElderlyCreateRespDto>> createElderly(@Valid @RequestBody ElderlyCreateReqDto elderlyCreateReqDto,
                                                                          BindingResult bindingResult,
@@ -51,6 +54,7 @@ public class CaregiverController implements CaregiverControllerDocs {
 
         return new ResponseEntity<>(ApiUtil.success(elderlyService.createElderly(elderlyCreateReqDto, loginUser.getCaregiver().getUsername())), HttpStatus.CREATED);
     }
+    @RequireAuth
     @PostMapping("/elderlys/{elderlyId}/assistants") //AI Assistant 생성
     public ResponseEntity<?> createAssistant(@RequestBody CreateAssistantReqDto createAssistantReqDto,
                                              @PathVariable(name = "elderlyId")Long elderlyId,
@@ -59,7 +63,7 @@ public class CaregiverController implements CaregiverControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(caregiverService.attachAssistantToElderly(createAssistantReqDto, elderlyId, loginUser.getCaregiver().getUsername())),HttpStatus.CREATED);
     }
 
-
+    @RequireAuth
     @GetMapping("/mypage") //내 정보
     public ResponseEntity<?> getCaregiverInfo(@AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.caregiverInfo(loginUser.getUsername())),HttpStatus.OK);

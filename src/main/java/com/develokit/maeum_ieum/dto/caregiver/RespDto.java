@@ -80,12 +80,20 @@ public class RespDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Getter
+    @Schema(description = "요양사 마이 페이지에서 반환되는 DTO")
     public static class MyInfoRespDto{
+        @Schema(description = "요양사 이름")
         private String name;
+        @Schema(description = "요양사 프로필 사진")
         private String imgUrl;
+        @Schema(description = "요양사 성별")
         private Gender gender;
+        @Schema(description = "요양사 생년월일")
         private LocalDate birthDate;
+        @Schema(description = "요양사 소속")
         private String organization;
+        @Schema(description = "요양사 연락처")
         private String contact;
 
         public MyInfoRespDto(Caregiver caregiver){

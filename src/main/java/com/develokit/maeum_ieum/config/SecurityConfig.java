@@ -24,7 +24,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import java.security.SecureRandom;
 import java.util.Collections;
 
 @Configuration
@@ -33,12 +35,17 @@ import java.util.Collections;
 public class SecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger((getClass()));
+    private final RequestMappingHandlerMapping handlerMapping;
     private final JwtExceptionFilter jwtExceptionFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
         log.debug("디버그 : BCryptPasswordEncoder 빈 등록됨");
         return new BCryptPasswordEncoder();
+    }
+    @Bean
+    public SecureRandom secureRandom(){
+        return new SecureRandom();
     }
     public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity>{
 
@@ -47,7 +54,7 @@ public class SecurityConfig {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
             builder.addFilterBefore(jwtExceptionFilter, JwtAuthorizationFilter.class); //토큰 검증 전에 에러 잡기 위한 필터
             builder.addFilter(new JwtAuthenticationFilter(authenticationManager)); //jwt 인증 필터
-            builder.addFilter(new JwtAuthorizationFilter(authenticationManager)); //인가 필터
+            builder.addFilter(new JwtAuthorizationFilter(authenticationManager, handlerMapping)); //인가 필터
             super.configure(builder);
         }
     }
@@ -61,7 +68,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                     //.requestMatchers("/caregivers/elderlys").hasAuthority("ROLE_ADMIN")
-                    .anyRequest().permitAll()
+                        .anyRequest().permitAll()
                 )
                 .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
                 .httpBasic(AbstractHttpConfigurer::disable)

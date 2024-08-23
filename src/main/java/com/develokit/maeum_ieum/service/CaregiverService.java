@@ -12,6 +12,7 @@ import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import com.develokit.maeum_ieum.util.CustomAccessCodeGenerator;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import lombok.*;
 import org.springframework.cglib.core.Local;
@@ -42,6 +43,7 @@ public class CaregiverService {
     private final OpenAiService openAiService;
     private final ElderlyRepository elderlyRepository;
     private final AssistantRepository assistantRepository;
+    private final CustomAccessCodeGenerator accessCodeGenerator;
 
     @Transactional
     public JoinRespDto join(JoinReqDto joinReqDto){ //회원가입
@@ -72,7 +74,7 @@ public class CaregiverService {
 
         //존재하는 사용자인지 검사
         Elderly elderlyPS = elderlyRepository.findById(elderlyId)
-                .orElseThrow(() -> new CustomApiException("존재하지 않는 어르신 입니다"));
+                .orElseThrow(() -> new CustomApiException("존재하지 않는 노인 사용자 입니다"));
 
 
         //해당 사용자가 이미 어시스턴트가 붙어 있는지 검사
@@ -120,7 +122,7 @@ public class CaregiverService {
                         .responseType(createAssistantReqDto.getResponseType())
                         .personality(createAssistantReqDto.getPersonality())
                         .forbiddenTopic(createAssistantReqDto.getForbiddenTopic())
-                        .accessCode(bCryptPasswordEncoder.encode(elderlyPS.getName()))
+                        .accessCode(accessCodeGenerator.generateEncodedAccessCode())
                         .build()
         );
 

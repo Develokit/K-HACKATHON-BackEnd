@@ -10,6 +10,7 @@ import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import java.security.SignatureException;
 import java.util.Date;
@@ -38,7 +39,7 @@ public class JwtProvider {
             decodedJWT = JWT.require(Algorithm.HMAC256(JwtVo.SECRET)).build().verify(token);
         } catch (TokenExpiredException e){
             logger.error("토큰이 만료되어 더 이상 유효하지 않습니다", e);
-            throw new CustomApiException("토큰 기간 만료");
+            throw new CustomApiException("토큰 기간 만료", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
         }
 
         String username =

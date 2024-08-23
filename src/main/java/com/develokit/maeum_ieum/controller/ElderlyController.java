@@ -69,7 +69,7 @@ public class ElderlyController {
             @RequestBody CreateStreamMessageReqDto createStreamMessageReqDto,
                                                                 BindingResult bindingResult){
         elderlyService.updateLastChatDate(elderlyId);
-        return messageService.getStreamMessage(createStreamMessageReqDto);
+        return messageService.getStreamMessage(createStreamMessageReqDto, elderlyId);
     }
 
     @PostMapping("/{elderlyId}/voice-message")
@@ -78,7 +78,7 @@ public class ElderlyController {
                                                        BindingResult bindingResult){
         elderlyService.updateLastChatDate(elderlyId);
 
-        return messageService.getVoiceMessage(createAudioReqDto)
+        return messageService.getVoiceMessage(createAudioReqDto, elderlyId)
 //                .flatMap(voiceMessage -> saveVoiceMessageToFile(voiceMessage, "C:\\Users\\admin\\Desktop\\maeum-ieum\\src\\main\\resources\\마음이음.mp3")
 //                        .then(Mono.just(voiceMessage)))
                 .map(result -> new ResponseEntity<>(ApiUtil.success(result), HttpStatus.CREATED))

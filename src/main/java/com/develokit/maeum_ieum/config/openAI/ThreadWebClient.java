@@ -1,5 +1,10 @@
 package com.develokit.maeum_ieum.config.openAI;
 
+import com.develokit.maeum_ieum.domain.message.Message;
+import com.develokit.maeum_ieum.domain.message.MessageRepository;
+import com.develokit.maeum_ieum.domain.message.MessageType;
+import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
+import com.develokit.maeum_ieum.dto.message.RespDto;
 import com.develokit.maeum_ieum.dto.message.RespDto.CreateStreamMessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
@@ -9,23 +14,33 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.run.ReqDto.*;
 
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ThreadWebClient {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+
+    private final MessageRepository messageRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ThreadWebClient.class);
 
     //메시지 생성
     public Flux<MessageRespDto> createMessage(String threadId, CreateMessageReqDto createMessageReqDto){
@@ -35,8 +50,7 @@ public class ThreadWebClient {
                 .retrieve()
                 .bodyToFlux(MessageRespDto.class)
                 .doOnError(WebClientResponseException.class, e -> {
-                    System.err.println("에러 코드: " + e.getStatusCode());
-                    System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    logger.error(e.getMessage());
                     throw new CustomApiException("메시지 생성 과정에서 에러 발생");
                 });
     }
@@ -48,53 +62,48 @@ public class ThreadWebClient {
                 .retrieve()
                 .bodyToMono(MessageRespDto.class)
                 .doOnError(WebClientResponseException.class, e -> {
-                    System.err.println("에러 코드: " + e.getStatusCode());
-                    System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    logger.error(e.getMessage());
                     throw new CustomApiException("단일 메시지 생성 과정에서 에러 발생");
                 });
     }
 
     //스트림 런 생성
-    public Flux<CreateStreamMessageRespDto> createStreamRun(String threadId, CreateRunReqDto createRunReqDto){
+    public Flux<CreateStreamMessageRespDto> createStreamRun(String threadId, CreateRunReqDto createRunReqDto, Elderly elderly){
         return webClient.post()
                 .uri("/threads/{threadId}/runs", threadId)
                 .bodyValue(createRunReqDto)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {})
                 .doOnError(WebClientResponseException.class, e -> {
-                    System.err.println("에러 코드: " + e.getStatusCode());
-                    System.err.println("에러 응답 본문: " + e.getResponseBodyAsString());
+                    logger.error(e.getMessage());
+                    throw new CustomApiException("WebFlux 응답 반환 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 })
                 .filter(event -> "thread.message.delta".equals(event.event()))
-                .map(event -> {
+                .handle((event, sink) -> {
                     String data = event.data();
                     try {
                         ObjectMapper mapper = new ObjectMapper();
-//                        StreamRunRespDto.StreamRunDataRespDto streamRunDataRespDto = mapper.readValue(data, StreamRunRespDto.StreamRunDataRespDto.class);
-//                        String value = streamRunDataRespDto.getDelta().getContent().getText().getValue();
-//                        System.out.println("value = " + value);
-
-
                         JsonNode rootNode = mapper.readTree(data);
                         JsonNode deltaNode = rootNode.path("delta");
                         JsonNode contentArray = deltaNode.path("content");
                         if (!contentArray.isEmpty()) {
                             JsonNode textNode = contentArray.get(0).path("text");
                             String answer = textNode.path("value").asText();
-                            return new CreateStreamMessageRespDto(answer);
+                            sink.next(new CreateStreamMessageRespDto(answer));
+                            return;
                         }
-                        return null; //TODO 이거 처리할것!!!
+                        sink.error(new CustomApiException("답변 생성 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                     } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                        return null; //TODO 이거 처리할것!!!
+                        logger.error(e.getMessage());
+                        sink.error(new CustomApiException("답변 추출 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                     }
                 });
     }
 
     //메시지 생성 후 스트림 런 작업 처리
-    public Flux<CreateStreamMessageRespDto> createMessageAndStreamRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto){
+    public Flux<CreateStreamMessageRespDto> createMessageAndStreamRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto, Elderly elderly){
         return createMessage(threadId, createMessageReqDto)
-                .thenMany(createStreamRun(threadId, createRunReqDto));
+                .thenMany(createStreamRun(threadId, createRunReqDto, elderly));
 
     }
 
@@ -146,11 +155,18 @@ public class ThreadWebClient {
     }
 
     // 메시지 생성 -> 답변 생성 -> 답변을 오디오로 변환
-    public Mono<CreateAudioRespDto> createMessageAndRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto, AudioRequestDto audioRequestDto){
+    @Transactional
+    public Mono<CreateAudioRespDto> createMessageAndRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto, AudioRequestDto audioRequestDto, Elderly elderly){
         return createSingleMessage(threadId, createMessageReqDto)
                 .then(createRun(threadId, createRunReqDto))
                 .flatMap(text -> {
                     audioRequestDto.setInput(text);
+                    messageRepository.save(Message.builder()
+                                    .messageType(MessageType.AI)
+                                    .content(text)
+                                    .elderly(elderly)
+                                    .build()
+                    );
                     return createAudio(audioRequestDto);
                 });
     }

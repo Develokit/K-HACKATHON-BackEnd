@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.controller;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto;
+import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
@@ -45,13 +46,20 @@ public interface CaregiverControllerDocs {
                                     @AuthenticationPrincipal LoginUser loginUser
     );
     @Operation(summary = "마이 페이지", description = "요양사의 마이 페이지 조회 기능: jwt 토큰 사용")
-    @ApiResponse(responseCode = "200", description = "마이 페이지 조회 성공", content = @Content(schema = @Schema(implementation = MyInfoRespDto.class)))
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "마이 페이지 조회 성공", content = @Content(schema = @Schema(implementation = MyInfoRespDto.class))),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = MyInfoRespDto.class)))
+    })
     ResponseEntity<?> getCaregiverInfo(@AuthenticationPrincipal LoginUser loginUser);
 
 
 
     @Operation(summary = "어시스턴트 생성", description = "AI 어시스턴트 생성 기능: jwt 토큰, CreateAssistantReqDto 사용")
     @Parameter(description = "노인 사용자 아이디",in = ParameterIn.PATH)
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "AI 어시스턴트 생성 성공", content = @Content(schema = @Schema(implementation = CreateAssistantRespDto.class))),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = MyInfoRespDto.class)))
+    })
     ResponseEntity<?> createAssistant(@RequestBody CreateAssistantReqDto createAssistantReqDto,
                                       @PathVariable(name = "elderlyId")Long elderlyId,
                                       BindingResult bindingResult,

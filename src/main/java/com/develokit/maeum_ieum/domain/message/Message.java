@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.domain.base.BaseEntity;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,7 +27,13 @@ public class Message extends BaseEntity {
 
     @Column(length = 2048)
     private String content; //메시지 내용
+    @Builder
 
+    public Message(Elderly elderly, MessageType messageType, String content) {
+        this.elderly = elderly;
+        this.messageType = messageType;
+        this.content = content;
+    }
 }
 
 

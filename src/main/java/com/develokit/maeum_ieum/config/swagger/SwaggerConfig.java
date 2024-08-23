@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,7 @@ public class SwaggerConfig {
 
         operation.getResponses().forEach((responseCode, apiResonse) -> {
             Content content = apiResonse.getContent();
+
             if(content != null){
                 content.forEach((mediaTypeKey, mediaType) -> {
                     Schema originalSchema = mediaType.getSchema();
@@ -58,12 +60,19 @@ public class SwaggerConfig {
             addPossibleValidationErrors(dataSchema);
             wrapperSchema.addProperty("data", dataSchema);
 
-
             Schema apiErrorSchema = new Schema<>();
             apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(400));
             apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("유효성 검사 실패"));
             wrapperSchema.addProperty("apiError", apiErrorSchema);
+        }
+        else if("401".equals(responseCode)){ //토큰 기간 만료에 대한 401 에러
 
+            wrapperSchema.addProperty("data", null);
+
+            Schema apiErrorSchema = new Schema<>();
+            apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(401));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("토큰 기간 만료"));
+            wrapperSchema.addProperty("apiError", apiErrorSchema);
         }
         return wrapperSchema;
     }
