@@ -7,6 +7,8 @@ import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

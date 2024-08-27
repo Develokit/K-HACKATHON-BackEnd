@@ -18,7 +18,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.StringFormattedMessage;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -83,8 +85,7 @@ public class ElderlyController {
 //                        .then(Mono.just(voiceMessage)))
                 .map(result -> new ResponseEntity<>(ApiUtil.success(result), HttpStatus.CREATED))
                 .doOnError(e -> {
-                    System.err.println("에러 발생: " + e.getMessage());
-                    throw new CustomApiException(e.getMessage());
+                    throw new CustomApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 });
     }
 
@@ -96,7 +97,7 @@ public class ElderlyController {
                 Files.write(path, voiceMessage.getAnswer());
                 return "파일 경로 : " + path.toAbsolutePath().toString();
             }catch (IOException e){
-                throw new RuntimeException("파일 저장 중 에러 발생", e);
+                throw new CustomApiException("파일 저장 중 에러 발생",HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
     }
