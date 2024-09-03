@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,6 +51,9 @@ public class Elderly extends User {
     @OneToMany(mappedBy = "elderly")
     private List<Report> monthlyReports = new ArrayList<>(); //월간 보고서
 
+    //TODO -> 프론트에서 추가하는 화면 구현하면 연결할것
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek reportDay;
 
     public boolean hasAssistant(){
         if(assistant == null) return false;
