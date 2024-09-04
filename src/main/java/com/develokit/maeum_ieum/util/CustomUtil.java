@@ -11,6 +11,12 @@ import java.time.format.DateTimeFormatter;
 
 public class CustomUtil {
 
+    //2017-02-03 -> 2017년 2월 3일
+    public static String BirthDateToString(LocalDate birthDate){
+        String[] split = birthDate.toString().split("-");
+        return split[0]+"년 "+split[1]+"월 "+split[2]+"일";
+    }
+
     public static LocalDate StringToLocalDate(String birthDate){
         return LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }

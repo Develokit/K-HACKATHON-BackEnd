@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.service;
 import com.develokit.maeum_ieum.config.openAI.AssistantFeignClient;
 import com.develokit.maeum_ieum.config.openAI.ThreadFeignClient;
 import com.develokit.maeum_ieum.config.openAI.ThreadWebClient;
+import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.ListMessageRespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
@@ -15,6 +16,7 @@ import lombok.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +35,7 @@ public class OpenAiService {
 
     private final AssistantFeignClient assistantFeignClient;
     private final ThreadFeignClient threadFeignClient;
-    private String model = "gpt-3.5-turbo";
+    private final String model = "gpt-3.5-turbo";
 
     //어시스턴트 생성
     public String createAssistant(OpenAiCreateAssistantReqDto openAiCreateAssistantReqDto){
@@ -41,9 +43,9 @@ public class OpenAiService {
             AssistantRespDto assistantRespDto = assistantFeignClient.createAssistant(
                     new OpenAiCreateAssistantReqDto(
                     model,
-                    openAiCreateAssistantReqDto.getDescription(),
+                    openAiCreateAssistantReqDto.getName(),
                     openAiCreateAssistantReqDto.getInstructions(),
-                    openAiCreateAssistantReqDto.getName()
+                    openAiCreateAssistantReqDto.getDescription()
                     )
             );
             log.debug("어시스턴트 생성!!");
@@ -71,7 +73,31 @@ public class OpenAiService {
         }
     }
 
+    //어시스턴트 수정
+    public AssistantRespDto modifyAssistant(String openAiAssistantId, Assistant assistant){
+        try{
+            return assistantFeignClient.modifyAssistant(
+                    assistant.getOpenAiAssistantId(),
+                    ModifyAssistantReqDto.builder()
+                            .model(model)
+                            .name(assistant.getName())
+                            .instructions(assistant.getOpenAiInstruction())
+                            .description(assistant.getMandatoryRule())
+                            .build()
+            );
+        }catch (Exception e){
+            throw new CustomApiException(e.getMessage());
+        }
+    }
 
+    //어시스턴트 삭제
+    public void deleteAssistant(String openAiAssistantId){
+        try{
+            assistantFeignClient.deleteAssistant(openAiAssistantId);
+        }catch (Exception e){
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 

@@ -2,6 +2,8 @@ package com.develokit.maeum_ieum.config.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
@@ -27,8 +29,6 @@ public class JwtProvider {
                 .withClaim("role", loginUser.getCaregiver().getRole().toString())
                 .sign(Algorithm.HMAC256(JwtVo.SECRET));
 
-        System.out.println("토큰에 넣은 role 값 = " + loginUser.getCaregiver().getRole().toString());
-
         return JwtVo.TOKEN_PREFIX + jwtToken;
     }
 
@@ -40,6 +40,12 @@ public class JwtProvider {
         } catch (TokenExpiredException e){
             logger.error("토큰이 만료되어 더 이상 유효하지 않습니다", e);
             throw new CustomApiException("토큰 기간 만료", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
+        } catch(SignatureVerificationException e){
+            logger.error("유효하지 않은 토큰 서명입니다", e);
+            throw new CustomApiException("유효하지 않은 토큰 서명", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
+        } catch(JWTVerificationException e){
+            logger.error("JWT 검증 중 오류가 발생했습니다", e);
+            throw new CustomApiException("유효하지 않은 토큰",HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
         }
 
         String username =

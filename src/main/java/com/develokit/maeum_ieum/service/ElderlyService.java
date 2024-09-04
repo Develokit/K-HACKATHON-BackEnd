@@ -25,7 +25,14 @@ import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.thread.RespDto.*;
 
@@ -55,20 +64,20 @@ public class ElderlyService {
     private final AssistantRepository assistantRepository;
     private final OpenAiService openAiService;
     private final ReportRepository reportRepository;
+    private final Logger log = LoggerFactory.getLogger(CaregiverService.class);
 
     //노인 등록
     @Transactional
     public ElderlyCreateRespDto createElderly(ElderlyCreateReqDto elderlyCreateReqDto, String username){
 
-        //요양사 검증
-        Caregiver caregiverPS = careGiverRepository.findByUsername(username)
-                .orElseThrow(
-                        () -> new CustomApiException("등록 권한이 없습니다", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED)
-                );
+        //요양사 가져오기
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
 
         //노인 중복 검사 -> 연락처
         Optional<Elderly> elderlyOP = elderlyRepository.findByContact(elderlyCreateReqDto.getContact());
-        if(elderlyOP.isPresent()) throw new CustomApiException("이미 등록된 어르신 입니다", HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT);
+        if(elderlyOP.isPresent()) throw new CustomApiException("이미 등록된 사용자 입니다", HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT);
 
         String imgUrl = null;
         //이미지 저장
@@ -79,18 +88,18 @@ public class ElderlyService {
         Elderly elderlyPS = elderlyRepository.save(elderlyCreateReqDto.toEntity(caregiverPS, imgUrl));
 
         //TODO 보고서 생성 -> 출력을 원하는 요일에 생성되도록 지정해야 함
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime[] weekStartAndEnd = CustomUtil.getWeekStartAndEnd(now);
-        LocalDateTime startDayOfWeek = weekStartAndEnd[0];
-        LocalDateTime endDayOfWeek = weekStartAndEnd[1];
-        LocalDateTime lastDayOfMonth = CustomUtil.getMonthEnd(now);
-
-        //TODO 이것도 수정해야 함
-        Report weeklyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, endDayOfWeek, ReportType.WEEKLY));
-        Report monthlyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, lastDayOfMonth, ReportType.MONTHLY ));
-
-        elderlyPS.getWeeklyReports().add(weeklyReportPS);
-        elderlyPS.getMonthlyReports().add(monthlyReportPS);
+//        LocalDateTime now = LocalDateTime.now();
+//        LocalDateTime[] weekStartAndEnd = CustomUtil.getWeekStartAndEnd(now);
+//        LocalDateTime startDayOfWeek = weekStartAndEnd[0];
+//        LocalDateTime endDayOfWeek = weekStartAndEnd[1];
+//        LocalDateTime lastDayOfMonth = CustomUtil.getMonthEnd(now);
+//
+//        //TODO 이것도 수정해야 함
+//        Report weeklyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, endDayOfWeek, ReportType.WEEKLY));
+//        Report monthlyReportPS = reportRepository.save(new Report(elderlyPS, startDayOfWeek, lastDayOfMonth, ReportType.MONTHLY ));
+//
+//        elderlyPS.getWeeklyReports().add(weeklyReportPS);
+//        elderlyPS.getMonthlyReports().add(monthlyReportPS);
 
 
         return new ElderlyCreateRespDto(elderlyPS);
@@ -102,13 +111,13 @@ public class ElderlyService {
         //연결된 노인 사용자 찾기
         Elderly elderlyPS = elderlyRepository.findById(elderlyId)
                 .orElseThrow(
-                        () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+                        () -> new CustomApiException("등록되지 않은 노인 사용자 입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
                 );
 
         //연결된 요양사 찾기
         Caregiver caregiverPS = careGiverRepository.findById(elderlyPS.getCaregiver().getId())
                 .orElseThrow(
-                        () -> new CustomApiException("해당 전문 요양사가 존재하지 않습니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND )
+                        () -> new CustomApiException("등록되지 않은 요양사 사용자 입니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND )
                 );
 
         return new ElderlyMainRespDto(caregiverPS, elderlyPS);
@@ -126,7 +135,7 @@ public class ElderlyService {
 
         //사용자 검증
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-                () -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
         //스레드 있는지 확인
@@ -154,10 +163,74 @@ public class ElderlyService {
     @Transactional
     public void updateLastChatDate(Long elderlyId){
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
         elderlyPS.updateLastChatDate(LocalDateTime.now());
     }
+
+    //TODO 요양사 화면에서 노인 기본 정보 수정 - 이미지 제외
+    @Transactional
+    public ElderlyModifyRespDto modifyElderlyInfo(ElderlyModifyReqDto elderlyModifyReqDto, Long elderlyId){
+
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+        //노인 기본 정보 수정
+        elderlyPS.updateElderlyInfo(elderlyModifyReqDto);
+        Assistant assistantPS = elderlyPS.getAssistant();
+        //어시스턴트 이름 수정
+        if(assistantPS != null) assistantPS.modifyAssistantName(elderlyModifyReqDto.getAssistantName());
+
+        return new ElderlyModifyRespDto(elderlyPS);
+    }
+
+    //요양사 화면에서 노인 프로필 사진 수정
+    @Transactional
+    public ElderlyImgModifyRespDto modifyElderlyImg(MultipartFile file, Long elderlyId){
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        if (file == null || file.isEmpty()) {
+            return new ElderlyImgModifyRespDto(elderlyPS.getImgUrl());
+        }
+
+        String newImgUrl = null;
+        String oldImgUrl = elderlyPS.getImgUrl();
+
+        try {
+            // 이미지 있다면 -> 새 이미지 업로드
+            if(!file.isEmpty())
+                newImgUrl = s3Service.uploadImage(file);
+
+            elderlyPS.updateImg(newImgUrl);
+
+            // 기존 이미지 삭제
+            if (oldImgUrl != null && !oldImgUrl.isEmpty()) {
+                s3Service.deleteImage(oldImgUrl);
+            }
+            return new ElderlyImgModifyRespDto(newImgUrl);
+        } catch (Exception e) {
+            // 업로드 실패 시 새로 업로드된 이미지 삭제 (있다면)
+            if (newImgUrl != null) {
+                try {
+                    s3Service.deleteImage(newImgUrl);
+                } catch (Exception ignored) {
+                    log.error("S3에 올라간 업데이트된 이미지 삭제 작업 실패");
+                }
+            }
+            log.error("이미지 업데이트 중 오류 발생");
+            throw new CustomApiException("이미지 업데이트 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
 
 
 

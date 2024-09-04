@@ -5,6 +5,8 @@ import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.User;
+import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
+import com.develokit.maeum_ieum.service.CaregiverService;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -13,10 +15,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
+import static com.develokit.maeum_ieum.service.CaregiverService.*;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @AllArgsConstructor
+@ToString
 public class Caregiver extends User {
 
     @Id
@@ -24,15 +30,18 @@ public class Caregiver extends User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String username;
 
     @Column(nullable = false, length = 60)
     private String password;
 
     @OneToMany(mappedBy = "caregiver")
+    @ToString.Exclude
     private List<Assistant> assistantList = new ArrayList<>();
 
     @OneToMany(mappedBy = "caregiver")
+    @ToString.Exclude
     private List<Elderly> elderlyList = new ArrayList<>();
 
     @Builder
@@ -41,5 +50,15 @@ public class Caregiver extends User {
         this.username = username;
         this.password = password;
     }
+
+    public void updateCaregiverInfo(CaregiverModifyReqDto caregiverModifyReqDto){
+        super.updateCommonInfo(caregiverModifyReqDto.getName(), caregiverModifyReqDto.getGender(),
+                caregiverModifyReqDto.getOrganization(), caregiverModifyReqDto.getBirthDate(), caregiverModifyReqDto.getContact());
+    }
+
+    public void updateImg(String imgUrl){
+        super.updateImg(imgUrl);
+    }
+
 
 }

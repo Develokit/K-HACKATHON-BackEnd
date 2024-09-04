@@ -13,24 +13,26 @@ import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.CustomAccessCodeGenerator;
-import com.develokit.maeum_ieum.util.CustomUtil;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Size;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import lombok.*;
-import org.springframework.cglib.core.Local;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
-import static com.develokit.maeum_ieum.service.OpenAiService.*;
+import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,12 +47,14 @@ public class CaregiverService {
     private final AssistantRepository assistantRepository;
     private final CustomAccessCodeGenerator accessCodeGenerator;
 
+    private final Logger log = LoggerFactory.getLogger(CaregiverService.class);
+
     @Transactional
     public JoinRespDto join(JoinReqDto joinReqDto){ //회원가입
 
         //아이디 중복 검사
         Optional<Caregiver> caregiverOP = careGiverRepository.findByUsername(joinReqDto.getUsername());
-        if(caregiverOP.isPresent()) throw new CustomApiException("이미 존재하는 아이디 입니다");
+        if(caregiverOP.isPresent()) throw new CustomApiException("이미 존재하는 아이디 입니다", HttpStatus.CONFLICT.value(),HttpStatus.CONFLICT);
 
         //이미지 저장
         String imgUrl = null;
@@ -65,50 +69,52 @@ public class CaregiverService {
     }
 
     @Transactional //노인 사용자의 AI Assistant 생성
-    public CreateAssistantRespDto attachAssistantToElderly(ReqDto.CreateAssistantReqDto createAssistantReqDto, Long elderlyId, String username){
+    public CreateAssistantRespDto attachAssistantToElderly(CreateAssistantReqDto createAssistantReqDto, Long elderlyId, String username){
 
-        //존재하는 전문가인지 검사
-        Caregiver caregiverPS = careGiverRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomApiException("등록 권한이 없습니다"));
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
 
 
         //존재하는 사용자인지 검사
         Elderly elderlyPS = elderlyRepository.findById(elderlyId)
-                .orElseThrow(() -> new CustomApiException("존재하지 않는 노인 사용자 입니다"));
+                .orElseThrow(() -> new CustomApiException("존재하지 않는 노인 사용자 입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND));
 
 
         //해당 사용자가 이미 어시스턴트가 붙어 있는지 검사
-        if(elderlyPS.hasAssistant()) throw new CustomApiException("이미 AI Assistant가 생성되어 있습니다");
+        if(elderlyPS.hasAssistant()) throw new CustomApiException("이미 AI Assistant가 생성되어 있습니다", HttpStatus.CONFLICT.value(),HttpStatus.CONFLICT);
 
 
         //필수 속성과 선택 속성(대화 주제, 금기어, 응답 형식, 성격) 설정하기
         String instructions = "";
 
         //필수 속성
-        instructions += createAssistantReqDto.getDescription()+"\n";
+        instructions += createAssistantReqDto.getMandatoryRule()+"\n";
 
 
         //선택 속성
         if(createAssistantReqDto.getConversationTopic() != null){ //대화 주제
-            instructions += "당신은 나와 "+createAssistantReqDto.getConversationTopic()+"을 주제로 얘기합니다. ";
+            instructions += "[대화 주제 : 당신은"+createAssistantReqDto.getConversationTopic()+"을 주제로 얘기합니다.]\n";
         }
         if(createAssistantReqDto.getForbiddenTopic() != null){ //금기어
-            instructions += "당신은 '"+createAssistantReqDto.getForbiddenTopic()+"'에 관해서는 절대 언급해서는 안됩니다!!! ";
+            instructions += "[금기어 및 금기 주제 : '"+createAssistantReqDto.getForbiddenTopic()+"']\n";
         }
         if(createAssistantReqDto.getResponseType() != null){ //응답 형식
-            instructions += "나와 대화할 때 '"+createAssistantReqDto.getResponseType()+"'의 응답 형식을 지켜서 대화해주세요. ";
+            instructions += "[준수 응답 형식 : '"+createAssistantReqDto.getResponseType()+"']\n";
         }
         if(createAssistantReqDto.getPersonality() != null){ //성격
-            instructions += "당신의 성격은 '"+createAssistantReqDto.getPersonality()+"' 합니다!";
+            instructions += "[성격 : 당신의 성격은 '"+createAssistantReqDto.getPersonality()+"']";
         }
 
 
         //어시스턴트 생성 + instructions 설정
-        String assistantId = openAiService.createAssistant(new OpenAiCreateAssistantReqDto(
-                createAssistantReqDto.getDescription(),
-                instructions,
-                createAssistantReqDto.getName()
-        ));
+        String assistantId = openAiService.createAssistant(
+                OpenAiCreateAssistantReqDto.builder()
+                        .description(createAssistantReqDto.getMandatoryRule())
+                        .instructions(instructions)
+                        .name(createAssistantReqDto.getName())
+                        .build()
+        );
 
         //어시스턴트 저장
         Assistant assistantPS = assistantRepository.save(
@@ -117,31 +123,26 @@ public class CaregiverService {
                         .openAiAssistantId(assistantId)
                         .caregiver(caregiverPS)
                         .elderly(elderlyPS)
-                        .rule(createAssistantReqDto.getDescription())
+                        .mandatoryRule(createAssistantReqDto.getMandatoryRule())
                         .conversationTopic(createAssistantReqDto.getConversationTopic())
                         .responseType(createAssistantReqDto.getResponseType())
                         .personality(createAssistantReqDto.getPersonality())
                         .forbiddenTopic(createAssistantReqDto.getForbiddenTopic())
                         .accessCode(accessCodeGenerator.generateEncodedAccessCode())
+                        .openAiInstruction(instructions)
                         .build()
         );
 
         //노인에 어시스턴트 주입
         elderlyPS.attachAssistant(assistantPS);
 
-        return new CreateAssistantRespDto(assistantPS, instructions);
+        return new CreateAssistantRespDto(assistantPS);
     }
 
-
-
     public MyInfoRespDto caregiverInfo(String username){//내 정보(이름, 이미지, 성별, 생년월일, 주거지, 소속기관, 연락처)
-
-        //요양사 검증
-        Caregiver caregiverPS = careGiverRepository.findByUsername(username)
-                .orElseThrow(
-                        () -> new CustomApiException("존재하지 않는 정보입니다")
-                );
-
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
         return new MyInfoRespDto(caregiverPS);
     }
 
@@ -149,11 +150,79 @@ public class CaregiverService {
     public CaregiverMainRespDto getCaregiverMainInfo(String username){
 
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
-                () -> new CustomApiException("등록되지 않은 사용자입니다")
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
         return new CaregiverMainRespDto(caregiverPS);
     }
+
+    //마이페이지 -> 수정 (이미지 제외)
+    @Transactional
+    public CaregiverModifyRespDto modifyCaregiverInfo(String username, CaregiverModifyReqDto caregiverModifyReqDto){
+
+        //요양사 가져오기
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        caregiverPS.updateCaregiverInfo(caregiverModifyReqDto);
+        return new CaregiverModifyRespDto(caregiverPS);
+    }
+
+    @Transactional
+    public CaregiverImgModifyRespDto modifyCaregiverImg(String username, MultipartFile file){
+
+        System.out.println(file);
+
+        //요양사 가져오기
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        if (file==null || file.isEmpty()) {
+            return new CaregiverImgModifyRespDto(caregiverPS.getImgUrl());
+        }
+
+        String newImgUrl = null;
+        String oldImgUrl = caregiverPS.getImgUrl();
+
+        try {
+            // 이미지 있다면 -> 새 이미지 업로드
+            if(!file.isEmpty())
+                newImgUrl = s3Service.uploadImage(file);
+
+            caregiverPS.updateImg(newImgUrl);
+
+            // 기존 이미지 삭제
+            if (oldImgUrl != null && !oldImgUrl.isEmpty()) {
+                s3Service.deleteImage(oldImgUrl);
+            }
+            return new CaregiverImgModifyRespDto(newImgUrl);
+        } catch (Exception e) {
+            // 업로드 실패 시 새로 업로드된 이미지 삭제 (있다면)
+            if (newImgUrl != null) {
+                try {
+                    s3Service.deleteImage(newImgUrl);
+                } catch (Exception ignored) {
+                    log.error("S3에 올라간 업데이트된 이미지 삭제 작업 실패");
+                }
+            }
+            log.error("이미지 업데이트 중 오류 발생");
+            throw new CustomApiException("이미지 업데이트 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
+
+
+    //TODO 어시스턴트 삭제
+
+
+
 
 
 }

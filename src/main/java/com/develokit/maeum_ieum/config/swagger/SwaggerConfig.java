@@ -1,24 +1,22 @@
 package com.develokit.maeum_ieum.config.swagger;
 
 import com.develokit.maeum_ieum.util.api.ApiError;
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Configuration
-public class SwaggerConfig {
+public class SwaggerConfig{
 
     @Bean
     public OperationCustomizer operationCustomizer() {
@@ -43,7 +41,7 @@ public class SwaggerConfig {
         });
     }
 
-    private Schema<?> wrapSchema(Schema originalSchema, String responseCode) {
+    protected Schema<?> wrapSchema(Schema originalSchema, String responseCode) {
         final Schema<?> wrapperSchema = new Schema<>();
 
         wrapperSchema.addProperty("success", new Schema<>().type("boolean").example("200".equals(responseCode)));
@@ -62,7 +60,7 @@ public class SwaggerConfig {
 
             Schema apiErrorSchema = new Schema<>();
             apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(400));
-            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("유효성 검사 실패"));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("유효성 검사 실패")); //유효성 검사 실패
             wrapperSchema.addProperty("apiError", apiErrorSchema);
         }
         else if("401".equals(responseCode)){ //토큰 기간 만료에 대한 401 에러
@@ -71,37 +69,59 @@ public class SwaggerConfig {
 
             Schema apiErrorSchema = new Schema<>();
             apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(401));
-            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("토큰 기간 만료"));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("토큰 기간 만료 | 로그인 실패 | Authorization 헤더 재확인 바람 | 유효하지 않은 토큰 서명" ));
+            wrapperSchema.addProperty("apiError", apiErrorSchema);
+        }
+        else if("500".equals(responseCode)) {
+            wrapperSchema.addProperty("data", null);
+
+            Schema apiErrorSchema = new Schema<>();
+            apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(500));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR"));
+            wrapperSchema.addProperty("apiError", apiErrorSchema);
+        }
+        else if("409".equals(responseCode)){
+            wrapperSchema.addProperty("data", null);
+
+            Schema apiErrorSchema = new Schema<>();
+            apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(409));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("이미 존재하는 아이디입니다" ));
             wrapperSchema.addProperty("apiError", apiErrorSchema);
         }
         return wrapperSchema;
     }
+
+
 
     private void addPossibleValidationErrors(Schema dataSchema){
         dataSchema.addProperty("username", new Schema<>().type("string").example("영문자와 숫자를 포함하여 6자에서 12자 사이여야 합니다"));
         dataSchema.addProperty("password", new Schema<>().type("string").example("영문자와 숫자를 포함하여 6자에서 12자 사이여야 합니다"));
         //TODO aop에 걸리는 가능한 필드 오류 너무 많음 -> 다른 방안 찾아볼것
     }
-    @Bean
-    public OpenAPI openAPI(){
-//        String jwt = "JWT";
-//        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
-//        Components components = new Components().addSecuritySchemes(jwt, new SecurityScheme()
-//                .name(jwt)
-//                .type(SecurityScheme.Type.HTTP)
-//                .scheme("bearer")
-//                .bearerFormat("JWT")
-//        );
+    protected OpenAPI createBaseOpenAPI() {
         return new OpenAPI()
                 .components(new Components())
                 .info(apiInfo());
     }
+    private SecurityScheme createAPIKeyScheme() {
+        return new SecurityScheme().type(SecurityScheme.Type.HTTP)
+                .bearerFormat("JWT")
+                .scheme("bearer");
+    }
+
+
+    @Bean
+    public OpenAPI openAPI() {
+        return createBaseOpenAPI()
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()));
+    }
+
     public Info apiInfo(){
         return new Info()
                 .title("Maeum-Ieum API Document")
                 .description("기능 요청을 위한 API 명세")
                 .version("1.0");
     }
-
-
 }

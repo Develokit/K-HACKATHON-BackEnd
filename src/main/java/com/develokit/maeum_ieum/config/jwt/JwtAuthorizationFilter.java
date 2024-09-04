@@ -39,17 +39,21 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     //헤더 검증
     private boolean isHeaderVerify(HttpServletRequest request){
-        try{
+        try {
             HandlerMethod handlerMethod = (HandlerMethod) handlerMapping.getHandler(request).getHandler();
-            if(handlerMethod.getMethodAnnotation(RequireAuth.class) != null){
+            if (handlerMethod.getMethodAnnotation(RequireAuth.class) != null) {
                 String header = request.getHeader(JwtVo.HEADER);
-                if(header == null || !header.startsWith(JwtVo.TOKEN_PREFIX)) {
+                if (header == null || !header.startsWith(JwtVo.TOKEN_PREFIX)) {
                     throw new CustomApiException("Authorization 헤더 재확인 바람", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
-                }
-                else return true; //헤더 검사 통과하면 필터 내에서 토큰 검증
+                } else return true; //헤더 검사 통과하면 필터 내에서 토큰 검증
             }
             return false;
+        }catch(CustomApiException e){
+            throw e;
         }catch (Exception e){
+            if (request.getRequestURI().contains("swagger-ui")) //스웨거 접근 허용
+                return false;
+            logger.error(e.getMessage());
             throw new CustomApiException("헤더 검증 과정에서 에러 발생",HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

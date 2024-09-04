@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EmergencyContactInfo {
 
-    private String emergencyName;
-    private String emergencyContact;
-    private String relationship;
+    protected String emergencyName;
+    protected String emergencyContact;
+    protected String relationship;
 
 
 }

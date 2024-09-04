@@ -12,10 +12,9 @@ import java.util.List;
 
 public class ReqDto {
 
+
     @Getter
     @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     public static class ModifyAssistantReqDto{
         @NotNull
         private String model;
@@ -28,7 +27,14 @@ public class ReqDto {
         @Nullable
         @Size(max = 512)
         private String description;
-        private List<ToolDto> tools;
+
+        @Builder
+        public ModifyAssistantReqDto(String model, @Nullable String name, @Nullable String instructions, @Nullable String description) {
+            this.model = model;
+            this.name = name;
+            this.instructions = instructions;
+            this.description = description;
+        }
     }
 
 
@@ -56,6 +62,7 @@ public class ReqDto {
             this.description = description;
         }
 
+        @Builder
         public OpenAiCreateAssistantReqDto(@Nullable String name, @Nullable String instructions, @Nullable String description) {
             this.name = name;
             this.instructions = instructions;

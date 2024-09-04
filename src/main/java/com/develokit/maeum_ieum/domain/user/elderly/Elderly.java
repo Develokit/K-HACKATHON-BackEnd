@@ -7,6 +7,8 @@ import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.User;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
+import com.develokit.maeum_ieum.dto.elderly.ReqDto;
+import com.develokit.maeum_ieum.service.ElderlyService;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -19,6 +21,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -75,5 +79,29 @@ public class Elderly extends User {
         this.assistant = assistant;
         this.emergencyContactInfo = emergencyContactInfo;
         caregiver.getElderlyList().add(this);
+    }
+
+    public void updateElderlyInfo(ElderlyModifyReqDto elderlyModifyReqDto){
+        super.updateCommonInfo(elderlyModifyReqDto.getName(),
+                elderlyModifyReqDto.getGender(), elderlyModifyReqDto.getOrganization(),
+                elderlyModifyReqDto.getBirthDate(), elderlyModifyReqDto.getContact());
+
+        if(elderlyModifyReqDto.getHomeAddress() != null)
+            this.homeAddress = elderlyModifyReqDto.getHomeAddress();
+        if(elderlyModifyReqDto.getHealthInfo() != null)
+            this.healthInfo = elderlyModifyReqDto.getHealthInfo();
+        if(elderlyModifyReqDto.getEmergencyName() != null)
+            this.emergencyContactInfo.emergencyName = elderlyModifyReqDto.getEmergencyName();
+        if(elderlyModifyReqDto.getEmergencyContact() != null)
+            this.emergencyContactInfo.emergencyContact = elderlyModifyReqDto.getEmergencyContact();
+        if(elderlyModifyReqDto.getReportDay() != null)
+            this.reportDay = DayOfWeek.valueOf(elderlyModifyReqDto.getReportDay());
+    }
+    public void updateImg(String imgUrl){
+        super.updateImg(imgUrl);
+    }
+
+    public void deleteAssistant(){
+        this.assistant = null;
     }
 }

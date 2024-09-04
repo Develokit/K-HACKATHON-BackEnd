@@ -1,6 +1,8 @@
 package com.develokit.maeum_ieum.domain.user;
 
 import com.develokit.maeum_ieum.domain.base.BaseEntity;
+import com.develokit.maeum_ieum.service.CaregiverService;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -42,5 +44,17 @@ public abstract class User extends BaseEntity {
         this.birthDate = birthDate;
         this.organization = organization;
         this.role = role;
+    }
+
+    protected void updateCommonInfo(String name, String gender, String Organization, String BirthDate, String Contact){
+        if(name != null) this.name = name;
+        if(gender != null) this.gender = Gender.valueOf(gender);
+        if(organization!=null) this.organization = organization;
+        if(birthDate != null) this.birthDate = CustomUtil.StringToLocalDate(String.valueOf(birthDate));
+        if(contact != null) this.contact = contact;
+    }
+
+    protected void updateImg(String imgUrl){
+        this.imgUrl = imgUrl;
     }
 }
