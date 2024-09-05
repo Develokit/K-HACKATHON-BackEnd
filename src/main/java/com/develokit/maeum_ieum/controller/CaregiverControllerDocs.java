@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,6 +35,28 @@ import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 @Tag(name = "요양사 API", description = "요양사가 호출하는 API 목록")
 
 public interface CaregiverControllerDocs {
+
+    @Operation(summary = "유저네임 중복 확인", description = "회원가입 시 유저네임 중복 여부 확인")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "중복 확인 완료",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CaregiverDuplicatedRespDto.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "중복 있음 예시",
+                                            value = "{\n  \"username\": \"userA3333\",\n  \"isDuplicated\": true\n}",
+                                            summary = "유저네임 중복 시"
+                                    ),
+                                    @ExampleObject(
+                                            name = "중복 없음 예시",
+                                            value = "{\n  \"username\": \"newUser5555\",\n  \"isDuplicated\": false\n}",
+                                            summary = "유저네임 사용 가능 시"
+                                    )
+                            }
+                    )
+            )
+    })
+    ResponseEntity<?> checkUsername(@PathVariable(name = "username")@Parameter(description = "확인할 유저네임") String username);
     @Operation(summary = "회원가입", description = "요양사 회원가입 기능: JoinReqDto 사용")
     @ApiResponses( value = {
             @ApiResponse(responseCode = "200", description = "회원 가입 성공", content = @Content(schema = @Schema(implementation = JoinRespDto.class), mediaType = "application/json")),
@@ -65,7 +88,7 @@ public interface CaregiverControllerDocs {
 
 
 
-    @Operation(summary = "어시스턴트 생성", description = "AI 어시스턴트 생성 기능: jwt 토큰, CreateAssistantReqDto 사용")
+    @Operation(summary = "AI 어시스턴트 생성", description = "AI 어시스턴트 생성 기능: jwt 토큰, CreateAssistantReqDto 사용")
     @Parameter(description = "노인 사용자 아이디",in = ParameterIn.PATH)
     @ApiResponses( value = {
             @ApiResponse(responseCode = "200", description = "AI 어시스턴트 생성 성공", content = @Content(schema = @Schema(implementation = CreateAssistantRespDto.class), mediaType = "application/json")),
@@ -84,7 +107,10 @@ public interface CaregiverControllerDocs {
             @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = CaregiverMainRespDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = CaregiverMainRespDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰 서명", content = @Content(schema = @Schema(implementation = CaregiverMainRespDto.class), mediaType = "application/json"))
-    })    ResponseEntity<?> getCaregiverMainInfo(@AuthenticationPrincipal LoginUser loginUser);
+    })ResponseEntity<?> getCaregiverMainInfo(
+            @RequestParam(name = "cursor",required = false) String cursor,
+            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @AuthenticationPrincipal LoginUser loginUser);
 
     @Operation(summary = "마이 페이지 수정 (이미지 제외) ", description = "마이 페이지 수정 기능: jwt 토큰 사용")
     @ApiResponses( value = {
@@ -154,11 +180,11 @@ public interface CaregiverControllerDocs {
 
     @Operation(summary = "AI 어시스턴트 삭제 ", description = "어시스턴트 삭제 기능: jwt 토큰 사용")
     @ApiResponses( value = {
-            @ApiResponse(responseCode = "200", description = "어시스턴트 삭제 성공", content = @Content(schema = @Schema(implementation = AssistantModifyRespDto.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = AssistantModifyRespDto.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = AssistantModifyRespDto.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰 서명", content = @Content(schema = @Schema(implementation = AssistantModifyRespDto.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = AssistantModifyRespDto.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "200", description = "어시스턴트 삭제 성공", content = @Content(schema = @Schema(implementation = AssistantDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = AssistantDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = AssistantDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰 서명", content = @Content(schema = @Schema(implementation = AssistantDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = AssistantDeleteRespDto.class), mediaType = "application/json"))
 
     })
     @RequireAuth

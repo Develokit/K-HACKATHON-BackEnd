@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,11 @@ public class CaregiverController implements CaregiverControllerDocs {
     private final ElderlyService elderlyService;
     private final AssistantService assistantService;
 
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<?> checkUsername(@PathVariable(name = "username") String username) {
+        return new ResponseEntity<>(ApiUtil.success(caregiverService.validateDuplicatedCaregiver(username)),HttpStatus.OK);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> join(@Valid @ModelAttribute JoinReqDto joinReqDto, BindingResult bindingResult){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.join(joinReqDto)), HttpStatus.CREATED);
@@ -51,8 +57,11 @@ public class CaregiverController implements CaregiverControllerDocs {
 
     @RequireAuth
     @GetMapping
-    public ResponseEntity<?> getCaregiverMainInfo(@AuthenticationPrincipal LoginUser loginUser){
-        return new ResponseEntity<>(ApiUtil.success(caregiverService.getCaregiverMainInfo(loginUser.getUsername())),HttpStatus.OK);
+    public ResponseEntity<?> getCaregiverMainInfo(
+            @RequestParam(name = "cursor",required = false) String cursor,
+            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(caregiverService.getCaregiverMainInfo(loginUser.getUsername(), cursor, limit)),HttpStatus.OK);
     }
 
     @RequireAuth

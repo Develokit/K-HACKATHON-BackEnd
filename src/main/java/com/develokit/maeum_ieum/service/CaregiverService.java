@@ -18,6 +18,8 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
@@ -48,6 +52,18 @@ public class CaregiverService {
     private final CustomAccessCodeGenerator accessCodeGenerator;
 
     private final Logger log = LoggerFactory.getLogger(CaregiverService.class);
+
+    //전체 데이터 서버에 던지기 전에 아이디 중복인지 검사
+    public CaregiverDuplicatedRespDto validateDuplicatedCaregiver(String username){
+        boolean isExist = careGiverRepository.findByUsername(username).isPresent();
+        if (isExist) {
+            return new CaregiverDuplicatedRespDto(username, true);
+        }
+        return new CaregiverDuplicatedRespDto(username, false);
+
+    }
+
+
 
     @Transactional
     public JoinRespDto join(JoinReqDto joinReqDto){ //회원가입
@@ -147,13 +163,30 @@ public class CaregiverService {
     }
 
     //홈 화면 (요양사 이름, 이미지, 총 관리 인원, 기관, 노인 사용자(이름, 나이, 주소, 연락처,  마지막 대화(n시간 전)), AI 생성 여부
-    public CaregiverMainRespDto getCaregiverMainInfo(String username){
+    public CaregiverMainRespDto getCaregiverMainInfo(String username, String cursor, int limit){
 
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
-        return new CaregiverMainRespDto(caregiverPS);
+        //cursor가 null이면 첫 페이지, 아니면 해당 커서 이후의 데이터를 가져옴 -> 최근 생성된 순으로 반환
+        List<Elderly> elderlyList = elderlyRepository.findByCaregiverIdAndIdAfter(caregiverPS.getId(), decodeCursor(cursor), PageRequest.of(0, limit + 1, Sort.by("id").descending()));
+
+        String nextCursor = null;
+        if(elderlyList.size()>limit){
+            nextCursor = encodeCursor(elderlyList.get(limit).getId());
+            elderlyList = elderlyList.subList(0, limit);
+        }
+
+        return new CaregiverMainRespDto(caregiverPS, elderlyList, nextCursor);
+    }
+
+
+    private String encodeCursor(Long id) {
+        return Base64.getEncoder().encodeToString(id.toString().getBytes());
+    }
+    private Long decodeCursor(String cursor) {
+        return cursor == null ? 0L : Long.parseLong(new String(Base64.getDecoder().decode(cursor)));
     }
 
     //마이페이지 -> 수정 (이미지 제외)

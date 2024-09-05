@@ -6,6 +6,7 @@ import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RespDto {
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "요양사 회원가입 시 유저네임 중복 체크 여부 반환 DTO")
+    public static class CaregiverDuplicatedRespDto {
+        @Schema(description = "검사한 사용자 아이디")
+        private String username;
+
+        @Schema(description = "아이디 중복 여부")
+        private boolean isDuplicated;
+    }
 
     @Getter
     @NoArgsConstructor
@@ -70,16 +83,19 @@ public class RespDto {
         private String organization;
         @Schema(description = "요양사 담당 노인 사용자 리스트")
         private List<ElderlyInfoDto> elderlyInfoDto;
+        @Schema(description = "다음 페이지 로드를 위한 커서")
+        private String nextCursor;
 
 
-        public CaregiverMainRespDto(Caregiver caregiver){
+        public CaregiverMainRespDto(Caregiver caregiver, List<Elderly>elderlyList, String nextCursor){
             this.name = caregiver.getName();
             this.img = caregiver.getImgUrl();
             this.totalCareNumber = caregiver.getElderlyList().size();
             this.organization = caregiver.getOrganization();
-            this.elderlyInfoDto = caregiver.getElderlyList().stream()
+            this.elderlyInfoDto = elderlyList.stream()
                     .map(ElderlyInfoDto::new)
                     .collect(Collectors.toList());
+            this.nextCursor = nextCursor;
         }
 
         @NoArgsConstructor
