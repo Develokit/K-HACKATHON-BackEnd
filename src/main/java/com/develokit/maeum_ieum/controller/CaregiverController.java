@@ -58,8 +58,8 @@ public class CaregiverController implements CaregiverControllerDocs {
     @RequireAuth
     @GetMapping
     public ResponseEntity<?> getCaregiverMainInfo(
-            @RequestParam(name = "cursor",required = false) String cursor,
-            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @RequestParam(name = "cursor",required = false) @Parameter(description = "다음 데이터 조회를 위한 커서 값. 첫 요청 시 null 또는 비워둠. 다음 데이터 요청 시 이전 응답의 nextCursor를 사용") String cursor,
+            @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
             @AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.getCaregiverMainInfo(loginUser.getUsername(), cursor, limit)),HttpStatus.OK);
     }

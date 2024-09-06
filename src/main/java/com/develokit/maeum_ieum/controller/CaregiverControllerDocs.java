@@ -108,8 +108,8 @@ public interface CaregiverControllerDocs {
             @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = CaregiverMainRespDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰 서명", content = @Content(schema = @Schema(implementation = CaregiverMainRespDto.class), mediaType = "application/json"))
     })ResponseEntity<?> getCaregiverMainInfo(
-            @RequestParam(name = "cursor",required = false) String cursor,
-            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @RequestParam(name = "cursor",required = false) @Parameter(description = "다음 데이터 조회를 위한 커서 값. 첫 요청 시 null 또는 비워둠. 다음 데이터 요청 시 이전 응답의 nextCursor를 사용") String cursor,
+            @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
             @AuthenticationPrincipal LoginUser loginUser);
 
     @Operation(summary = "마이 페이지 수정 (이미지 제외) ", description = "마이 페이지 수정 기능: jwt 토큰 사용")
@@ -171,7 +171,7 @@ public interface CaregiverControllerDocs {
     })
     @RequireAuth
     @PatchMapping(value = "/elderlys/{elderlyId}/assistants/{assistantId}")
-    public ResponseEntity<?> modifyAssistantInfo(@Valid@RequestBody AssistantModifyReqDto assistantModifyReqDto,
+    ResponseEntity<?> modifyAssistantInfo(@Valid@RequestBody AssistantModifyReqDto assistantModifyReqDto,
                                                  @PathVariable(name = "elderlyId")Long elderlyId,
                                                  @PathVariable(name = "assistantId")Long assistantId,
                                                  BindingResult bindingResult,
@@ -189,7 +189,7 @@ public interface CaregiverControllerDocs {
     })
     @RequireAuth
     @DeleteMapping(value = "/elderlys/{elderlyId}/assistants/{assistantId}")
-    public ResponseEntity<?> deleteAssistant(@PathVariable(name = "elderlyId")Long elderlyId,
+    ResponseEntity<?> deleteAssistant(@PathVariable(name = "elderlyId")Long elderlyId,
                                              @PathVariable(name = "assistantId")Long assistantId,
                                              @AuthenticationPrincipal LoginUser loginUser );
 
