@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -100,7 +101,7 @@ public class ReqDto {
         private MultipartFile img;
 
         @Schema(description = "요양사 이름: 최소 2글자 이상", required = true)
-        @NotNull
+        @NotBlank
         @Size(min = 2, message = "이름은 2글자 이상이여야 합니다")
         private String name;
 

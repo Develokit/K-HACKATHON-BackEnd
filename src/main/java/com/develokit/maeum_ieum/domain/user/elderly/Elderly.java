@@ -83,7 +83,7 @@ public class Elderly extends User {
 
     public void updateElderlyInfo(ElderlyModifyReqDto elderlyModifyReqDto){
         super.updateCommonInfo(elderlyModifyReqDto.getName(),
-                elderlyModifyReqDto.getGender(), elderlyModifyReqDto.getOrganization(),
+                elderlyModifyReqDto.getGender(),
                 elderlyModifyReqDto.getBirthDate(), elderlyModifyReqDto.getContact());
 
         if(elderlyModifyReqDto.getHomeAddress() != null)

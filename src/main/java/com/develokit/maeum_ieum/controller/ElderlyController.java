@@ -13,6 +13,7 @@ import com.develokit.maeum_ieum.service.MessageService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -33,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 
@@ -40,17 +42,18 @@ import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 @RequestMapping("/elderlys")
 @RequiredArgsConstructor
 @Tag(name = "노인 사용자 API", description = "노인 사용자가 호출하는 API 목록")
-public class ElderlyController {
+public class ElderlyController implements ElderlyControllerDocs {
 
     private final ElderlyService elderlyService;
     private final MessageService messageService;
     private final AssistantService assistantService;
 
     //접속 코드 확인
-    @GetMapping
-    public ResponseEntity<?> verifyAccessCode(@RequestParam(name = "access-code")String accessCode){
+    @GetMapping("/access-code/{accessCode}")
+    public ResponseEntity<?> verifyAccessCode(@PathVariable(name = "accessCode")String accessCode){
         return new ResponseEntity<>(ApiUtil.success(assistantService.verifyAccessCode(accessCode)),HttpStatus.OK);
     }
+
 
     //메인 홈
     @GetMapping("/{elderlyId}/assistants/{assistantId}")
@@ -68,7 +71,7 @@ public class ElderlyController {
     @PostMapping("/{elderlyId}/stream-message")
     public Flux<CreateStreamMessageRespDto> createStreamMessage(
             @PathVariable(name = "elderlyId") Long elderlyId,
-            @RequestBody CreateStreamMessageReqDto createStreamMessageReqDto,
+            @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto,
                                                                 BindingResult bindingResult){
         elderlyService.updateLastChatDate(elderlyId);
         return messageService.getStreamMessage(createStreamMessageReqDto, elderlyId);

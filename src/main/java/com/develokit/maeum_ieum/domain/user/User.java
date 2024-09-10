@@ -5,10 +5,7 @@ import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -46,7 +43,14 @@ public abstract class User extends BaseEntity {
         this.role = role;
     }
 
-    protected void updateCommonInfo(String name, String gender, String Organization, String BirthDate, String Contact){
+    protected void updateCommonInfo(String name, String gender, String Organization, String birthDate, String Contact){
+        if(name != null) this.name = name;
+        if(gender != null) this.gender = Gender.valueOf(gender);
+        if(organization!=null) this.organization = organization;
+        if(birthDate != null) this.birthDate = CustomUtil.StringToLocalDate(String.valueOf(birthDate));
+        if(contact != null) this.contact = contact;
+    }
+    protected void updateCommonInfo(String name, String gender, String birthDate, String Contact){
         if(name != null) this.name = name;
         if(gender != null) this.gender = Gender.valueOf(gender);
         if(organization!=null) this.organization = organization;

@@ -23,6 +23,7 @@ import java.time.LocalDate;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 
@@ -56,6 +57,32 @@ class CaregiverControllerTest extends DummyObject {
 
         String responseBody = resultAction.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
+    }
+    @Test
+    @WithUserDetails(setupBefore = TestExecutionEvent.TEST_EXECUTION, value = "userA3333")
+    void 노인생성_테스트() throws Exception{
+        //given
+        ElderlyCreateReqDto elderlyCreateReqDto = ElderlyCreateReqDto.builder()
+                .name("노인 이름")
+                .contact("010-1234-1244")
+                .healthInfo("건강하시다")
+                .build();
+
+        String requestBody = om.writeValueAsString(elderlyCreateReqDto);
+
+        //when
+        ResultActions resultActions = mvc.perform(
+                multipart("/caregivers/elderlys")
+                        .param("name",elderlyCreateReqDto.getName())
+                        .param("contact",elderlyCreateReqDto.getContact())
+                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+
+        );
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("responseBody = " + responseBody);
+
+        //then
+
     }
 
     @Test

@@ -9,6 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class CustomExceptionHandler {
@@ -24,5 +28,12 @@ public class CustomExceptionHandler {
     public ResponseEntity<?> validationException(CustomValidationException e){
         log.error(e.getMessage());
         return new ResponseEntity<>(ApiUtil.error(e.getMessage(), HttpStatus.BAD_REQUEST.value(), e.getErrorMap()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<?> handleMaxSizeException(MaxUploadSizeExceededException e) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("img", "파일 크기는 10MB를 초과할 수 없습니다.");
+        return new ResponseEntity<>(ApiUtil.error(e.getMessage(), HttpStatus.BAD_REQUEST.value(), errorMap), HttpStatus.BAD_REQUEST);
     }
 }

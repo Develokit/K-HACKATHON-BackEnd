@@ -44,7 +44,6 @@ public class MessageService {
 
     private final ThreadWebClient threadWebClient;
     private final ElderlyRepository elderlyRepository;
-    private final MessageRepository messageRepository;
     private final static Logger log = LoggerFactory.getLogger(MessageService.class);
 
 
@@ -71,23 +70,6 @@ public class MessageService {
                                 )
                         );
 
-
-//        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-//                () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
-//        );
-//
-//        return threadWebClient.createMessageAndStreamRun(
-//                createStreamMessageReqDto.getThreadId(),
-//                new CreateMessageReqDto(
-//                        "user",
-//                        createStreamMessageReqDto.getContent()
-//                ),
-//                new CreateRunReqDto(
-//                        createStreamMessageReqDto.getOpenAiAssistantId(),
-//                        true
-//                ),
-//                elderlyPS
-//        );
     }
 
     public Mono<CreateAudioRespDto> getVoiceMessage(CreateAudioReqDto createAudioReqDto, Long elderlyId){

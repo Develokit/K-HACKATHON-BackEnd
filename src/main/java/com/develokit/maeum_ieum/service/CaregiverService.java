@@ -13,8 +13,10 @@ import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.CustomAccessCodeGenerator;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
+import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 
@@ -243,6 +246,24 @@ public class CaregiverService {
             log.error("이미지 업데이트 중 오류 발생");
             throw new CustomApiException("이미지 업데이트 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    //TODO 노인 기본 정보 페이지 진입
+    public ElderlyInfoRespDto getElderlyInfo(Long elderlyId, String username){
+
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        if(!caregiverPS.getElderlyList().contains(elderlyPS))
+            throw new CustomApiException("관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+
+        return new ElderlyInfoRespDto(elderlyPS);
     }
 
 

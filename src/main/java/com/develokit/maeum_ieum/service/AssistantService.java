@@ -1,5 +1,6 @@
 package com.develokit.maeum_ieum.service;
 
+import com.develokit.maeum_ieum.controller.ElderlyController;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 
@@ -30,20 +32,21 @@ public class AssistantService {
     private final CareGiverRepository careGiverRepository;
 
     public VerifyAccessCodeRespDto verifyAccessCode(String accessCode){
+
         Assistant assistantPS = assistantRepository.findByAccessCode(accessCode)
                 .orElseThrow(
-                        () -> new CustomApiException("코드를 다시 확인해주세요")
+                        () -> new CustomApiException("코드를 다시 확인해주세요", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN)
                 );
 
         if(assistantPS.getElderly() == null)
-            throw new CustomApiException("사용할 수 없는 AI 어시스턴트 입니다");
+            throw new CustomApiException("AI 어시스턴트가 존재하지 않습니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND);
 
         return new VerifyAccessCodeRespDto(assistantPS);
     }
 
     //TODO 어시스턴트 수정
     @Transactional
-    public AssistantModifyRespDto modifyAssistantInfo(ReqDto.AssistantModifyReqDto assistantModifyReqDto, Long elderlyId, Long assistantId){
+    public AssistantModifyRespDto modifyAssistantInfo(AssistantModifyReqDto assistantModifyReqDto, Long elderlyId, Long assistantId){
         //어시스턴트 가져오기
         Assistant assistantPS = assistantRepository.findById(assistantId)
                 .orElseThrow(

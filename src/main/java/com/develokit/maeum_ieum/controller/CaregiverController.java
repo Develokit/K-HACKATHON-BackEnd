@@ -19,6 +19,8 @@ import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +46,7 @@ public class CaregiverController implements CaregiverControllerDocs {
     private final CaregiverService caregiverService;
     private final ElderlyService elderlyService;
     private final AssistantService assistantService;
+    private final Logger log = LoggerFactory.getLogger(CaregiverController.class);
 
     @GetMapping("/check-username/{username}")
     public ResponseEntity<?> checkUsername(@PathVariable(name = "username") String username) {
@@ -64,12 +67,12 @@ public class CaregiverController implements CaregiverControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(caregiverService.getCaregiverMainInfo(loginUser.getUsername(), cursor, limit)),HttpStatus.OK);
     }
 
+    //노인 사용자 생성
     @RequireAuth
-    @PostMapping("/elderlys")
-    public ResponseEntity<ApiResult<ElderlyCreateRespDto>> createElderly(@Valid @RequestBody ElderlyCreateReqDto elderlyCreateReqDto,
+    @PostMapping(value = "/elderlys", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createElderly(@Valid @ModelAttribute ElderlyCreateReqDto elderlyCreateReqDto,
                                                                          BindingResult bindingResult,
                                                                          @AuthenticationPrincipal LoginUser loginUser) {
-
         return new ResponseEntity<>(ApiUtil.success(elderlyService.createElderly(elderlyCreateReqDto, loginUser.getCaregiver().getUsername())), HttpStatus.CREATED);
     }
     @RequireAuth
@@ -106,9 +109,9 @@ public class CaregiverController implements CaregiverControllerDocs {
     //노인 기본 정보 수정(이미지 제외)
     @RequireAuth
     @PatchMapping(value = "/elderlys/{elderlyId}")
-    public ResponseEntity<?>modifyElderlyInfo(@Valid@RequestBody ElderlyModifyReqDto elderlyModifyReqDto, @PathVariable(value = "elderlyId")Long elderlyId,
-                                              BindingResult bindingResult, @AuthenticationPrincipal LoginUser loginUser){
-        return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyElderlyInfo(elderlyModifyReqDto, elderlyId)), HttpStatus.OK);
+    public ResponseEntity<?>modifyElderlyInfo(@Valid@RequestBody ElderlyModifyReqDto elderlyModifyReqDto, BindingResult bindingResult, @PathVariable(value = "elderlyId")Long elderlyId
+                                              ,@AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyElderlyInfo(elderlyModifyReqDto, elderlyId, loginUser.getCaregiver().getUsername())), HttpStatus.OK);
     }
 
     //노인 기본 정보 이미지 수정
@@ -116,7 +119,6 @@ public class CaregiverController implements CaregiverControllerDocs {
     @PatchMapping(value = "/elderlys/{elderlyId}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> modifyElderlyImg(@RequestParam(value = "img", required = false) MultipartFile img,
                                                @PathVariable(name = "elderlyId")Long elderlyId,
-                                               BindingResult bindingResult,
                                                @AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyElderlyImg(img, elderlyId)), HttpStatus.OK);
     }
@@ -140,5 +142,12 @@ public class CaregiverController implements CaregiverControllerDocs {
                                              @PathVariable(name = "assistantId")Long assistantId,
                                              @AuthenticationPrincipal LoginUser loginUser ){
         return new ResponseEntity<>(ApiUtil.success(assistantService.deleteAssistant(assistantId, elderlyId, loginUser.getUsername())), HttpStatus.OK);
+    }
+
+    //노인 기본 정보 조회
+    @RequireAuth
+    @GetMapping("/elderlys/{elderlyId}")
+    public ResponseEntity<?> getElderlyInfo(@PathVariable(name = "elderlyId")Long elderlyId, @AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(caregiverService.getElderlyInfo(elderlyId, loginUser.getCaregiver().getUsername())), HttpStatus.OK);
     }
 }

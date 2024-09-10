@@ -70,7 +70,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                     //.requestMatchers("/caregivers/elderlys").hasAuthority("ROLE_ADMIN")
-
+                        //.requestMatchers("/caregivers/elderlys", "/caregivers", "/caregivers/elderlys/{elderlyId}/assistants", "/caregivers/mypage", "caregivers/mypage/image", "/caregivers/elderlys/{elderlyId}/image", "/caregivers/elderlys/{elderlyId}/assistants/{assistantId}").authenticated()
                         .anyRequest().permitAll()
                 )
                 .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)

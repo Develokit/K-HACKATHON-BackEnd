@@ -56,12 +56,10 @@ public class RespDto {
     @Getter
     public static class VerifyAccessCodeRespDto{
         private Long assistantId;
-        private String openAiAssistantId;
         private Long elderlyId;
 
         public VerifyAccessCodeRespDto(Assistant assistant){
             this.assistantId = assistant.getId();
-            this.openAiAssistantId = assistant.getOpenAiAssistantId();
             this.elderlyId = assistant.getElderly().getId();
         }
     }

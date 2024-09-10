@@ -52,7 +52,7 @@ public class JwtAuthorizationFilterTest {
                 .name("userA")
                 .birthDate(LocalDate.now().toString())
                 .gender("FEMALE")
-                .imgFile(null)
+                .img(null)
                 .contact("010-8840-1231")
                 .homeAddress("제주시 연동")
                 .build();

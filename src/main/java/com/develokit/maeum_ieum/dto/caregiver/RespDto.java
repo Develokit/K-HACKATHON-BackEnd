@@ -116,6 +116,9 @@ public class RespDto {
             private boolean hasAssistant;
             @Schema(description = "AI 어시스턴트 아이디")
             private Long assistantId;
+            @Schema(description = "노인 프로필 사진")
+            private String img;
+
 
             public ElderlyInfoDto(Elderly elderly){
                 this.name = elderly.getName();
@@ -125,6 +128,7 @@ public class RespDto {
                 this.elderlyId = elderly.getId();
                 this.hasAssistant = elderly.hasAssistant();
                 this.assistantId = hasAssistant?elderly.getAssistant().getId():null;
+                this.img = elderly.getImgUrl();
             }
 
         }

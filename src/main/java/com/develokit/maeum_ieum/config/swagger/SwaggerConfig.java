@@ -72,6 +72,22 @@ public class SwaggerConfig{
             apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("토큰 기간 만료 | 로그인 실패 | Authorization 헤더 재확인 바람 | 유효하지 않은 토큰 서명" ));
             wrapperSchema.addProperty("apiError", apiErrorSchema);
         }
+        else if("403".equalsIgnoreCase(responseCode)){ //해당 사용자가 접근할 수 있는 자원이 아닌 경우
+            wrapperSchema.addProperty("data", null);
+
+            Schema apiErrorSchema = new Schema<>();
+            apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(403));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("해당 사용자의 AI 어시스턴트가 아닙니다 | 코드를 다시 확인해주세요 | 해당 사용자의 관리 대상이 아닙니다" ));
+            wrapperSchema.addProperty("apiError", apiErrorSchema);
+        }
+        else if("404".equals(responseCode)){
+            wrapperSchema.addProperty("data", null);
+
+            Schema apiErrorSchema = new Schema<>();
+            apiErrorSchema.addProperty("status", new Schema<>().type("integer").example(404));
+            apiErrorSchema.addProperty("msg", new Schema<>().type("string").example("등록된 AI 어시스턴트가 없습니다 | 등록되지 않은 노인 사용자입니다 | 관리하는 요양사 사용자가 존재하지 않습니다" ));
+            wrapperSchema.addProperty("apiError", apiErrorSchema);
+        }
         else if("500".equals(responseCode)) {
             wrapperSchema.addProperty("data", null);
 

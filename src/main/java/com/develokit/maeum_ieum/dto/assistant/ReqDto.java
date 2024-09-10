@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.dto.assistant;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -11,6 +12,17 @@ import lombok.Setter;
 import java.util.List;
 
 public class ReqDto {
+
+    @Getter
+    @NoArgsConstructor
+    @Schema(description = "AI 어시스턴트 접속을 위한 DTO")
+    public static class VerifyAccessCodeReqDto{
+        @NotBlank
+        @Size(min = 5, max = 5, message = "접속 코드 다섯 자리를 입력해주세요")
+        @Schema(description = "접속 코드: 5자리 고정")
+        private String accessCode;
+    }
+
     @Getter
     @NoArgsConstructor
     @Schema(description = "AI 어시스턴트 수정 요청을 위한 DTO")

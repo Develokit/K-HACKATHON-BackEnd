@@ -70,7 +70,7 @@ public class ThreadWebClient {
                 });
     }
     @Transactional
-    public Flux<CreateStreamMessageRespDto> createStreamRun(String threadId, CreateRunReqDto createRunReqDto, Elderly elderly) {
+    public Flux<CreateStreamMessageRespDto> createStreamRun(String threadId, CreateRunReqDto createRunReqDto, Elderly elderly, CreateMessageReqDto createMessageReqDto) {
         return webClient.post()
                 .uri("/threads/{threadId}/runs", threadId)
                 .bodyValue(createRunReqDto)
@@ -103,6 +103,13 @@ public class ThreadWebClient {
                                     if (!contentArray.isEmpty()) {
                                         JsonNode textNode = contentArray.get(0).path("text");
                                         String answer = textNode.path("value").asText();
+                                        //유저 질문 저장
+                                        messageRepository.save(Message.builder()
+                                                .elderly(elderly)
+                                                .content(createMessageReqDto.getContent())
+                                                .messageType(MessageType.USER)
+                                                .build());
+                                        //어시스턴트 답변 저장
                                         messageRepository.save(Message.builder()
                                                 .messageType(MessageType.AI)
                                                 .elderly(elderly)
@@ -123,14 +130,8 @@ public class ThreadWebClient {
 
     //유저 메시지 저장 -> 메시지 생성 -> 스트림 런 작업 처리
     public Flux<CreateStreamMessageRespDto> createMessageAndStreamRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto, Elderly elderly){
-        return Mono.fromCallable(() -> messageRepository.save(Message.builder()
-                        .elderly(elderly)
-                        .content(createMessageReqDto.getContent())
-                        .messageType(MessageType.USER)
-                .build())
-        ).subscribeOn(Schedulers.boundedElastic())
-                .thenMany(createMessage(threadId, createMessageReqDto))
-                .thenMany(createStreamRun(threadId, createRunReqDto, elderly));
+        return createMessage(threadId, createMessageReqDto)
+                .thenMany(createStreamRun(threadId, createRunReqDto, elderly, createMessageReqDto));
 
     }
 
@@ -188,16 +189,18 @@ public class ThreadWebClient {
                 .flatMap(text ->
                     Mono.fromCallable(() ->
                     {
+
                         audioRequestDto.setInput(text);
-                        Message aiMessage = messageRepository.save(Message.builder()
-                                .messageType(MessageType.AI)
-                                .content(text)
-                                .elderly(elderly)
-                                .build());
 
                         Message userMessage = messageRepository.save(Message.builder()
                                 .messageType(MessageType.USER)
                                 .content(createMessageReqDto.getContent())
+                                .elderly(elderly)
+                                .build());
+
+                        Message aiMessage = messageRepository.save(Message.builder()
+                                .messageType(MessageType.AI)
+                                .content(text)
                                 .elderly(elderly)
                                 .build());
 

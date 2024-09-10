@@ -24,7 +24,10 @@ public class ValidationAdvice {
     @Pointcut("@annotation(org.springframework.web.bind.annotation.PutMapping)")
     public void putMapping(){}
 
-    @Around("postMapping() || putMapping()")
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    public void patchMapping(){}
+
+    @Around("postMapping() || putMapping() || patchMapping()")
     public Object validationAdvice(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
         Object[] args = proceedingJoinPoint.getArgs();
         for (Object arg : args) {

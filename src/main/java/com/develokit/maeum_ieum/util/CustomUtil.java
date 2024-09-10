@@ -4,12 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 
 public class CustomUtil {
+
+    public static String LocalDateTimeFormatForChatResponse(LocalDateTime localDateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+        return localDateTime.format(formatter);
+    }
 
     //2017-02-03 -> 2017년 2월 3일
     public static String BirthDateToString(LocalDate birthDate){
