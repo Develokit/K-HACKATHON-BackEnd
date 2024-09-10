@@ -57,9 +57,14 @@ public interface ElderlyControllerDocs {
     @ApiResponses( value = {
             @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), examples = {
                     @ExampleObject(
-                            name = "답변이 끝날 때까지 반환",
-                            value = "{\n  \"answer\": \"가\"}",
-                            summary = "요청 성공"
+                            name = "isLast:false -> 응답 받아야 할 답변이 더 있는 상태",
+                            value = "{\n  \"answer\": \"가\",\n  \"isLast\": false\n}",
+                            summary = "답변 생성 중"
+                    ),
+                    @ExampleObject(
+                            name = "isLast:true -> 응답 종료",
+                            value = "{\n  \"answer\": \"null\",\n  \"isLast\": true\n}",
+                            summary = "답변 생성 완료"
                     )
             }, mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), mediaType = "application/json"))

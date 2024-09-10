@@ -95,7 +95,7 @@ public class ThreadWebClient {
                                     if (!contentArray.isEmpty()) {
                                         JsonNode textNode = contentArray.get(0).path("text");
                                         String answer = textNode.path("value").asText();
-                                        sink.next(new CreateStreamMessageRespDto(answer));
+                                        sink.next(new CreateStreamMessageRespDto(answer, false));
                                         return;
                                     }
                                 } else if ("thread.message.completed".equals(event.event())) {
@@ -115,6 +115,7 @@ public class ThreadWebClient {
                                                 .elderly(elderly)
                                                 .content(answer)
                                                 .build());
+                                        sink.next(new CreateStreamMessageRespDto(null, true));
                                         sink.complete();
                                         return;
                                     }
