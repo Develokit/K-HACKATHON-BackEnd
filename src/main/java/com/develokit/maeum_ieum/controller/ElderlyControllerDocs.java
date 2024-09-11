@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
@@ -23,6 +24,7 @@ import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
 import static com.develokit.maeum_ieum.dto.message.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.audio.RespDto.*;
 
 @Tag(name = "노인 사용자 API", description = "노인 사용자가 호출하는 API 목록")
 public interface ElderlyControllerDocs {
@@ -71,12 +73,12 @@ public interface ElderlyControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), examples = {
                     @ExampleObject(
                             name = "isLast:false -> 응답 받아야 할 답변이 더 있는 상태",
-                            value = "{\n  \"answer\": \"가\",\n  \"isLast\": false\n}",
+                            value = "{\n  \"answer\": \"가\",\n  \"isLast\": false,\n  \"timeStamp\": null\n}",
                             summary = "답변 생성 중"
                     ),
                     @ExampleObject(
                             name = "isLast:true -> 응답 종료",
-                            value = "{\n  \"answer\": \"null\",\n  \"isLast\": true\n}",
+                            value = "{\n  \"answer\": \"null\",\n  \"isLast\": true,\n   \"timeStamp\": \"09.12 00:58\"\n}",
                             summary = "답변 생성 완료"
                     )
             }, mediaType = "application/json")),
@@ -99,4 +101,15 @@ public interface ElderlyControllerDocs {
                                              @PathVariable(name=  "elderlyId")Long elderlyId,
                                              @Valid @RequestBody EmergencyRequestCreateReqDto emergencyRequestCreateReqDto,
                                              BindingResult bindingResult);
+
+
+    @Operation(summary = "채팅(오디오 답변)", description = "음성 기반 채팅 시 요청")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CreateAudioRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR(긴급 알림 요양사에게 전달 실패)", content = @Content(schema = @Schema(implementation = CreateAudioRespDto.class), mediaType = "application/json"))
+
+    })
+    Mono<?> createVoiceMessage(@PathVariable(name = "elderlyId")Long elderlyId,
+                               @Valid @RequestBody com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.CreateAudioReqDto createAudioReqDto,
+                               BindingResult bindingResult);
 }
