@@ -9,15 +9,19 @@ import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.jmx.export.annotation.ManagedNotifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -95,7 +99,7 @@ public class ThreadWebClient {
                                     if (!contentArray.isEmpty()) {
                                         JsonNode textNode = contentArray.get(0).path("text");
                                         String answer = textNode.path("value").asText();
-                                        sink.next(new CreateStreamMessageRespDto(answer, false));
+                                        sink.next(new CreateStreamMessageRespDto(answer, false, null));
                                         return;
                                     }
                                 } else if ("thread.message.completed".equals(event.event())) {
@@ -110,12 +114,12 @@ public class ThreadWebClient {
                                                 .messageType(MessageType.USER)
                                                 .build());
                                         //어시스턴트 답변 저장
-                                        messageRepository.save(Message.builder()
+                                        Message aiMessage = messageRepository.save(Message.builder()
                                                 .messageType(MessageType.AI)
                                                 .elderly(elderly)
                                                 .content(answer)
                                                 .build());
-                                        sink.next(new CreateStreamMessageRespDto(null, true));
+                                        sink.next(new CreateStreamMessageRespDto(null, true, CustomUtil.LocalDateTimeFormatForChatResponse(aiMessage.getCreatedDate())));
                                         sink.complete();
                                         return;
                                     }
@@ -169,13 +173,13 @@ public class ThreadWebClient {
     }
 
     //오디오 생성
-    public Mono<CreateAudioRespDto> createAudio(AudioRequestDto audioRequestDto){
+    public Mono<CreateAudioRespDto> createAudio(AudioRequestDto audioRequestDto, LocalDateTime aiMessageCreateTime){
         return webClient.post()
                 .uri("/audio/speech")
                 .bodyValue(audioRequestDto)
                 .retrieve()
                 .bodyToMono(byte[].class)
-                .map(CreateAudioRespDto::new)
+                .map(audio -> new CreateAudioRespDto(audio, audioRequestDto.getInput(), CustomUtil.LocalDateTimeFormatForChatResponse(aiMessageCreateTime)))
                 .doOnError(WebClientResponseException.class, e -> {
                     logger.error(e.getMessage());
                     throw new CustomApiException("오디오 생성 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -190,7 +194,6 @@ public class ThreadWebClient {
                 .flatMap(text ->
                     Mono.fromCallable(() ->
                     {
-
                         audioRequestDto.setInput(text);
 
                         Message userMessage = messageRepository.save(Message.builder()
@@ -199,16 +202,14 @@ public class ThreadWebClient {
                                 .elderly(elderly)
                                 .build());
 
-                        Message aiMessage = messageRepository.save(Message.builder()
+                        return messageRepository.save(Message.builder()
                                 .messageType(MessageType.AI)
                                 .content(text)
                                 .elderly(elderly)
                                 .build());
-
-                        return Arrays.asList(aiMessage, userMessage);
                     })
                     .subscribeOn(Schedulers.boundedElastic())
-                    .then(createAudio(audioRequestDto))
+                    .flatMap(aiMessage -> createAudio(audioRequestDto, aiMessage.getCreatedDate()))
                 );
     }
 

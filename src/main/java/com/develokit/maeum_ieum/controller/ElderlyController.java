@@ -66,10 +66,20 @@ public class ElderlyController implements ElderlyControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(elderlyService.getElderlyMainInfo(elderlyId, assistantId)), HttpStatus.OK);
     }
 
-    //채팅 화면 들어가기
-    @GetMapping("/{elderlyId}/assistants/{assistantId}/chat")
-    public ResponseEntity<?> checkAssistantInfo (@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId){
+    //채팅 화면 진입 시 반드시 요청 -> 어시스턴트 검증 및 스레드 확인
+    @GetMapping("/{elderlyId}/assistants/{assistantId}/status")
+    public ResponseEntity<?> checkAssistantInfo (@PathVariable(name = "elderlyId")Long elderlyId,
+                                                 @PathVariable(name = "assistantId")Long assistantId
+                                                 ){
         return new ResponseEntity<>(ApiUtil.success(elderlyService.checkAssistantInfo(elderlyId, assistantId)), HttpStatus.OK);
+    }
+
+    //채팅 화면 진입 시 반드시 요청 -> 이전 채팅 내역 끌고오기
+    @GetMapping("/{elderlyId}/chats")
+    public ResponseEntity<?> getChatHistory(@PathVariable(name = "elderlyId") Long elderlyId,
+                                                        @RequestParam(name = "page", defaultValue = "0")int page,
+                                                      @RequestParam(name = "size", defaultValue = "10")int size){
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.getChatHistory(page, size, elderlyId)), HttpStatus.OK);
     }
 
     //메시지 스트림 생성
@@ -78,7 +88,7 @@ public class ElderlyController implements ElderlyControllerDocs {
             @PathVariable(name = "elderlyId") Long elderlyId,
             @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto,
                                                                 BindingResult bindingResult){
-        elderlyService.updateLastChatDate(elderlyId);
+
         return messageService.getStreamMessage(createStreamMessageReqDto, elderlyId);
     }
 

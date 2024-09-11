@@ -54,7 +54,7 @@ public class Assistant extends BaseEntity {
 
     public void attachThread(String threadId){
         this.threadId = threadId;
-        threadCreatedDate = LocalDateTime.now();
+        this.threadCreatedDate = LocalDateTime.now();
     }
 
     public boolean hasThread(){

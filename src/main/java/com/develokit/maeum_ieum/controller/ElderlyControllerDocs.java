@@ -44,7 +44,7 @@ public interface ElderlyControllerDocs {
     })
     ResponseEntity<?> mainHome(@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId);
 
-    @Operation(summary = "채팅 화면 진입", description = "채팅 화면 진입 시 요청")
+    @Operation(summary = "채팅 화면 진입 시: 어시스턴트 및 스레드 검증", description = "채팅 화면 진입 시 요청")
     @ApiResponses( value = {
             @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "FORBIDDEN", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), mediaType = "application/json")),
@@ -53,6 +53,17 @@ public interface ElderlyControllerDocs {
 
     })
     ResponseEntity<?> checkAssistantInfo (@PathVariable(name = "elderlyId")Long elderlyId, @PathVariable(name = "assistantId")Long assistantId);
+
+    @Operation(summary = "채팅 화면 진입 시: 이전 채팅 내역 가져오기", description = "이전 채팅 내역 조회 시 요청")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = ChatInfoDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "FORBIDDEN", content = @Content(schema = @Schema(implementation = ChatInfoDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND", content = @Content(schema = @Schema(implementation = ChatInfoDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = ChatInfoDto.class), mediaType = "application/json"))
+    })
+    ResponseEntity<?> getChatHistory(@PathVariable(name = "elderlyId") Long elderlyId,
+                                     @RequestParam(name = "page", defaultValue = "0")int page,
+                                     @RequestParam(name = "size", defaultValue = "10")int size);
 
 
     @Operation(summary = "채팅 (스트림 답변)", description = "텍스트 기반 채팅 시 요청. 스트림으로 메시지 반환")

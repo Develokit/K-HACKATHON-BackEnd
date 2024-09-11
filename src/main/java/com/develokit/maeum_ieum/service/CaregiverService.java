@@ -206,7 +206,6 @@ public class CaregiverService {
     @Transactional
     public CaregiverImgModifyRespDto modifyCaregiverImg(String username, MultipartFile file){
 
-        System.out.println(file);
 
         //요양사 가져오기
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(

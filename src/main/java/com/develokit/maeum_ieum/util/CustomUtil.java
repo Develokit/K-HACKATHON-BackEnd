@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 
 
 public class CustomUtil {
+
+    //긴급 알림 내역 화면에 나갈 때 사용
     public static String convertToRelativeTimeString(LocalDateTime localDateTime){
         Duration duration = Duration.between(localDateTime, LocalDateTime.now());
         long days = duration.toDays();
@@ -23,7 +25,7 @@ public class CustomUtil {
     }
 
     public static String LocalDateTimeFormatForChatResponse(LocalDateTime localDateTime){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
         return localDateTime.format(formatter);
     }
 

@@ -1,41 +1,26 @@
 package com.develokit.maeum_ieum.service;
 
-import com.amazonaws.services.s3.transfer.internal.CompleteMultipartCopy;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
 import com.develokit.maeum_ieum.domain.message.Message;
 import com.develokit.maeum_ieum.domain.message.MessageRepository;
 import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
-import com.develokit.maeum_ieum.domain.report.ReportType;
-import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
-import com.develokit.maeum_ieum.domain.user.elderly.EmergencyContactInfo;
-import com.develokit.maeum_ieum.dto.elderly.ReqDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
-import com.develokit.maeum_ieum.dto.elderly.RespDto;
-import com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.AudioRequestDto;
-import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
-import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
-import com.develokit.maeum_ieum.dto.openAi.message.RespDto.ListMessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
-import com.develokit.maeum_ieum.util.CustomUtil;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.servlet.http.HttpServlet;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,34 +122,52 @@ public class ElderlyService {
 
 
     @Transactional
-    //채팅 화면 들어가기: 어시스턴트 이름 + 이전 대화 기록 -> 우선 어시스턴트 이름과 openAiAssistant아이디 반환
+    //채팅 화면 들어가기: 어시스턴트 검증 및 스레드 검증 진행
     public CheckAssistantInfoRespDto checkAssistantInfo(Long elderlyId, Long assistantId){
-        //어시스턴트 검증
-        Assistant assistantPS = assistantRepository.findById(assistantId)
-                .orElseThrow(
-                        () -> new CustomApiException("등록된 AI 어시스턴트가 없습니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
-                );
 
         //사용자 검증
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다.",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
-        //스레드 있는지 확인
-        String threadId = "";
+        //사용자에게 어시스턴트가 없으면 에러 throw
+        if(elderlyPS.getAssistant() == null)
+            throw new CustomApiException("등록된 AI 어시스턴트가 없습니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND);
+
+
+        //어시스턴트 검증
+        Assistant assistantPS = assistantRepository.findById(assistantId)
+                .orElseThrow(
+                        () -> new CustomApiException("존재하지 않는 AI 어시스턴트 입니다",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+                );
+
+        //사용자의 어시스턴트가 아니면
+        if(elderlyPS.getAssistant() != assistantPS)
+            throw new CustomApiException("해당 사용자의 AI 어시스턴트가 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+
+
         //스레드가 있는지 확인 -> 없으면 스레드 생성
-        if(assistantPS.hasThread()){ //스레드 있음
-            threadId = assistantPS.getThreadId();
-        }else{ //스레드 없음 -> 생성 후 db에 스레드 아이디 저장
+        if(!assistantPS.hasThread()){ //스레드 없음
             ThreadRespDto threadRespDto = openAiService.createThread();
-            threadId = threadRespDto.getId();
-            assistantPS.attachThread(threadId);
+            assistantPS.attachThread(threadRespDto.getId());
         }
 
-        //이전 대화 기록 -> 마지막 대화 시간 정보가 있으면 이전 대화 기록 끌고오기
-        List<Message> messageList = messageRepository.findByElderlyOrderByCreatedDate(elderlyPS);
+        return new CheckAssistantInfoRespDto(assistantPS);
+    }
 
-        return new CheckAssistantInfoRespDto(assistantPS, messageList);
+    //채팅 내역 끌고오기
+    public ChatInfoDto getChatHistory(int page, int size, Long elderlyId){
+
+        //사용자 검증
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.",HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //이전 대화 기록 -> 마지막 대화 시간 정보가 있으면 이전 대화 기록 끌고오기
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        Page<Message> messagePage = messageRepository.findByElderly(elderlyPS, pageable);
+
+        return new ChatInfoDto(messagePage, size);
     }
 
 

@@ -13,11 +13,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.develokit.maeum_ieum.dto.openAi.message.RespDto.*;
 
@@ -200,6 +202,7 @@ public class RespDto {
         @Pattern(regexp = "^(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)$", message = "유효한 요일 형식이 아닙니다")
         private String reportDay; //주간 보고서 생성 요일
     }
+
     @NoArgsConstructor
     @Getter
     @Schema(description = "채팅방 진입 요청에 따른 DTO")
@@ -210,99 +213,77 @@ public class RespDto {
         private String assistantName;
         @Schema(description = "OpenAI 요청을 위한 openAiAssistantId")
         private String openAiAssistantId;
-        @Schema(description = "채팅 내역")
-        private ChatInfoDto chatInfo;
 
-        @NoArgsConstructor
-        @Getter
-        static class ChatInfoDto{
-            @Schema(description = "반환 채팅 수")
-            private int size;
-            @Schema(description = "채팅 내역")
-            private final LinkedList<ChatDto> chat = new LinkedList<>();
-
-            public ChatInfoDto(List<Message> messageList){
-                this.size = messageList.size();
-                for (Message message : messageList) {
-                    this.chat.add(new ChatDto(message));
-                }
-            }
-            @NoArgsConstructor
-            @Getter
-            static class ChatDto{
-                @Schema(description = "답변 주체: USER | AI")
-                private String role;
-                @Schema(description = "답변 주체의 메시지")
-                private String content;
-                @Schema(description = "메시지 발행 시간")
-                private String timeStamp;
-
-                public ChatDto(Message message){
-                    this.role = message.getMessageType().toString();
-                    this.content = message.getContent();
-                    this.timeStamp = CustomUtil.LocalDateTimeFormatForChatResponse(message.getCreatedDate());
-                }
-            }
-        }
-
-//            @NoArgsConstructor
-//            @Getter
-//            static class ChatDto{
-//                @Schema(description = "답변 주체: USER | AI")
-//                private String role;
-//                @Schema(description = "답변 주체의 메시지")
-//                private String content;
-//
-//                public ChatDto(MessageRespDto messageRespDto){
-//                    this.role = messageRespDto.getRole();
-//                    this.content = messageRespDto.getContent().get(0).getText().getValue().toString();
-//                }
-//            }
-//        }
-
-//        @NoArgsConstructor
-//        @Getter
-//        static class ChatInfoDto{
-//            @Schema(description = "반환 채팅 수")
-//            private int size;
-//            @Schema(description = "채팅 내역")
-//            private LinkedList<ChatDto> chat = new LinkedList<>();
-//
-//            public ChatInfoDto(List<MessageRespDto> data){
-//                this.size = data.size();
-//                for (MessageRespDto messageDto : data) {
-//                    this.chat.add(new ChatDto(messageDto));
-//                }
-//            }
-//
-//            @NoArgsConstructor
-//            @Getter
-//            static class ChatDto{
-//                @Schema(description = "답변 주체: USER | AI")
-//                private String role;
-//                @Schema(description = "답변 주체의 메시지")
-//                private String content;
-//
-//                public ChatDto(MessageRespDto messageRespDto){
-//                    this.role = messageRespDto.getRole();
-//                    this.content = messageRespDto.getContent().get(0).getText().getValue().toString();
-//                }
-//            }
-//        }
-
-//        public CheckAssistantInfoRespDto(Assistant assistant, List<MessageRespDto> messageRespDto) {
-//            this.threadId = assistant.getThreadId();
-//            this.assistantName = assistant.getName();
-//            this.openAiAssistantId = assistant.getOpenAiAssistantId();
-//            if(messageRespDto != null)
-//                this.chatInfo = new ChatInfoDto(messageRespDto);
-//        }
-        public CheckAssistantInfoRespDto(Assistant assistant, List<Message> messageList) {
+        public CheckAssistantInfoRespDto(Assistant assistant) {
             this.threadId = assistant.getThreadId();
             this.assistantName = assistant.getName();
             this.openAiAssistantId = assistant.getOpenAiAssistantId();
-            if(!messageList.isEmpty())
-                this.chatInfo = new ChatInfoDto(messageList);
+        }
+    }
+
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "채팅 내역 요청에 따른 DTO")
+    public static class ChatInfoDto{
+        @Schema(description = "현재 페이지 번호")
+        private int currentPage;
+        @Schema(description = "전체 페이지 수")
+        private int totalPages;
+        @Schema(description = "이전 페이지 정보")
+        private PageInfo previous;
+
+        @Schema(description = "다음 페이지 정보")
+        private PageInfo next;
+
+        @Schema(description = "현재 페이지에 반환되는 채팅 수")
+        private int size;
+        @Schema(description = "채팅 내역")
+        private List<ChatDto> chat;
+
+        @Schema(description = "전체 채팅 수")
+        private long totalElements;
+
+
+        public ChatInfoDto(Page<Message> messagePage, int size){
+            this.currentPage = messagePage.getNumber();
+            this.totalPages = messagePage.getTotalPages();
+
+            this.totalElements = messagePage.getTotalElements();
+            this.chat = messagePage.getContent().stream()
+                    .map(ChatDto::new)
+                    .collect(Collectors.toList());
+            this.previous = messagePage.hasPrevious()?new PageInfo(this.currentPage-1, size):null;
+            this.next = messagePage.hasNext()?new PageInfo(this.currentPage+1, size):null;
+            this.size = chat.size();
+        }
+        @Getter
+        @NoArgsConstructor
+        @Schema(description = "페이지 정보")
+        public static class PageInfo {
+            private int page;
+            private int size;
+
+            public PageInfo(int page, int size) {
+                this.page = page;
+                this.size = size;
+            }
+        }
+        @NoArgsConstructor
+        @Getter
+        @Schema(description = "채팅 정보 DTO")
+        static class ChatDto{
+            @Schema(description = "답변 주체: USER | AI")
+            private String role;
+            @Schema(description = "답변 주체의 메시지")
+            private String content;
+            @Schema(description = "메시지 발행 시간")
+            private String timeStamp;
+
+            public ChatDto(Message message){
+                this.role = message.getMessageType().toString();
+                this.content = message.getContent();
+                this.timeStamp = CustomUtil.LocalDateTimeFormatForChatResponse(message.getCreatedDate());
+            }
         }
     }
 
