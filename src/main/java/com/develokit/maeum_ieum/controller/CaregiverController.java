@@ -7,6 +7,7 @@ import com.develokit.maeum_ieum.dto.assistant.ReqDto.CreateAssistantReqDto;
 import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
 import com.develokit.maeum_ieum.dto.elderly.RespDto;
+import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.service.ElderlyService;
@@ -28,6 +29,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import javax.print.attribute.standard.Media;
 import java.beans.BeanInfo;
@@ -123,7 +125,7 @@ public class CaregiverController implements CaregiverControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyElderlyImg(img, elderlyId)), HttpStatus.OK);
     }
 
-    //TODO 어시스턴트 수정
+    //어시스턴트 수정
     @RequireAuth
     @PatchMapping(value = "/elderlys/{elderlyId}/assistants/{assistantId}")
     public ResponseEntity<?> modifyAssistantInfo(@Valid@RequestBody AssistantModifyReqDto assistantModifyReqDto,
@@ -135,7 +137,7 @@ public class CaregiverController implements CaregiverControllerDocs {
     }
 
 
-    //TODO 어시스턴트 삭제
+    // 어시스턴트 삭제
     @RequireAuth
     @DeleteMapping(value = "/elderlys/{elderlyId}/assistants/{assistantId}")
     public ResponseEntity<?> deleteAssistant(@PathVariable(name = "elderlyId")Long elderlyId,
@@ -150,4 +152,20 @@ public class CaregiverController implements CaregiverControllerDocs {
     public ResponseEntity<?> getElderlyInfo(@PathVariable(name = "elderlyId")Long elderlyId, @AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(caregiverService.getElderlyInfo(elderlyId, loginUser.getCaregiver().getUsername())), HttpStatus.OK);
     }
+
+    //노인 필수 규칙 자동 완성
+    @RequireAuth
+    @PostMapping("/elderlys/{elderlyId}/assistants/rules/autocomplete")
+    public Mono<ResponseEntity<?>> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                           @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
+                                                           BindingResult bindingResult,
+                                                           @AuthenticationPrincipal LoginUser loginUser){
+        return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
+                .map(assistantMandatoryRuleRespDto -> ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .body(ApiUtil.success(assistantMandatoryRuleRespDto))
+                );
+    }
+
+
 }

@@ -16,6 +16,8 @@ import com.develokit.maeum_ieum.util.CustomAccessCodeGenerator;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
@@ -28,6 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import java.util.Base64;
 import java.util.List;
@@ -40,6 +43,8 @@ import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.gpt.RespDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.gpt.RespDto.CreateGptMessageRespDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -147,7 +152,7 @@ public class CaregiverService {
                         .responseType(createAssistantReqDto.getResponseType())
                         .personality(createAssistantReqDto.getPersonality())
                         .forbiddenTopic(createAssistantReqDto.getForbiddenTopic())
-                        .accessCode(accessCodeGenerator.generateEncodedAccessCode())
+                        .accessCode(accessCodeGenerator.generateEncodedAccessCode(elderlyPS.getName()))
                         .openAiInstruction(instructions)
                         .build()
         );
@@ -265,6 +270,13 @@ public class CaregiverService {
 
         return new ElderlyInfoRespDto(elderlyPS);
     }
+
+
+    //TODO AI 필수 규칙 자동 생성
+    public Mono<AssistantMandatoryRuleRespDto> createAutoMandatoryRule(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqdto){
+        return openAiService.createGptMessage(assistantMandatoryRuleReqdto);
+    }
+
 
 
 

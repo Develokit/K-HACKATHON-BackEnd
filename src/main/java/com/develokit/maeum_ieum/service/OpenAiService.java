@@ -1,29 +1,28 @@
 package com.develokit.maeum_ieum.service;
 
 import com.develokit.maeum_ieum.config.openAI.AssistantFeignClient;
+import com.develokit.maeum_ieum.config.openAI.GptWebClient;
 import com.develokit.maeum_ieum.config.openAI.ThreadFeignClient;
-import com.develokit.maeum_ieum.config.openAI.ThreadWebClient;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
-import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.CreateMessageReqDto;
+import com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto;
+import com.develokit.maeum_ieum.dto.openAi.gpt.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.ListMessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.message.RespDto.MessageRespDto;
-import com.develokit.maeum_ieum.dto.openAi.run.ReqDto.CreateRunReqDto;
-import com.develokit.maeum_ieum.dto.openAi.run.RespDto.StreamRunRespDto;
-import com.develokit.maeum_ieum.dto.openAi.thread.ReqDto;
-import com.develokit.maeum_ieum.dto.openAi.thread.RespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import lombok.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 
-
+import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto.CreateGptMessageReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.thread.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.thread.RespDto.*;
 
@@ -35,14 +34,24 @@ public class OpenAiService {
 
     private final AssistantFeignClient assistantFeignClient;
     private final ThreadFeignClient threadFeignClient;
-    private final String model = "gpt-3.5-turbo";
+    private final GptWebClient gptWebClient;
+    private final String MODEL = "gpt-4o";
+    private final int MAX_TOKENS = 400;
+
+    private final String SYSTEM_PROMPT =
+            "당신은 요양사를 위한 규칙을 간결하고 실용적으로 작성하는 도우미 역할을 합니다. " +
+                    "이 규칙은 당신이 앞으로 요양사가 관리하는 노인과의 대화에서 사용될 것이며, " +
+                    "노인의 안전과 건강을 최우선으로 고려하여 작성해야 합니다. 불필요하게 길지 않게 작성하고, " +
+                    "응답은 400 토큰 내로 작성해 주세요.";
+    private final String USER_PROMPT_SUFFIX =
+            "\n규칙을 구체적이고 간단하게 작성해 주세요. 최대 200자 이내로 완전한 응답을 생성해주세요.";
 
     //어시스턴트 생성
     public String createAssistant(OpenAiCreateAssistantReqDto openAiCreateAssistantReqDto){
         try{
             AssistantRespDto assistantRespDto = assistantFeignClient.createAssistant(
                     new OpenAiCreateAssistantReqDto(
-                    model,
+                            MODEL,
                     openAiCreateAssistantReqDto.getName(),
                     openAiCreateAssistantReqDto.getInstructions(),
                     openAiCreateAssistantReqDto.getDescription()
@@ -79,7 +88,7 @@ public class OpenAiService {
             return assistantFeignClient.modifyAssistant(
                     assistant.getOpenAiAssistantId(),
                     ModifyAssistantReqDto.builder()
-                            .model(model)
+                            .model(MODEL)
                             .name(assistant.getName())
                             .instructions(assistant.getOpenAiInstruction())
                             .description(assistant.getMandatoryRule())
@@ -96,6 +105,21 @@ public class OpenAiService {
             assistantFeignClient.deleteAssistant(openAiAssistantId);
         }catch (Exception e){
             throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    //TODO gpt한테 필수 규칙 더 상세하게 생성해달라는 요청
+    public Mono<AssistantMandatoryRuleRespDto> createGptMessage(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto){
+        try{
+           return gptWebClient.createGptMessage(new CreateGptMessageReqDto(
+                    MODEL,
+                    new MessageDto(SYSTEM_PROMPT, "system"),
+                    new MessageDto(assistantMandatoryRuleReqDto.getContent() + USER_PROMPT_SUFFIX, "user"),
+                   MAX_TOKENS
+            )).map(AssistantMandatoryRuleRespDto::new);
+
+        }catch (Exception e){
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
+
         }
     }
 

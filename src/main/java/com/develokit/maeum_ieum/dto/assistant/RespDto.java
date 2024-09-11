@@ -6,7 +6,36 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import static com.develokit.maeum_ieum.dto.openAi.gpt.RespDto.*;
+
 public class RespDto {
+
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "노인 필수 규칙 자동 생성 요청에 대한 응답 DTO")
+    public static class AssistantMandatoryRuleRespDto{
+        //TODO 테스트를 위해 콘솔 로그 놔둠 -> 성공 후 삭제할 것
+        public AssistantMandatoryRuleRespDto(CreateGptMessageRespDto createGptMessageRespDto){
+            CreateGptMessageRespDto.ChoiceDto choiceDto = createGptMessageRespDto.getChoices().get(0);
+            int totalTokens = createGptMessageRespDto.getUsage().getTotalTokens();
+            int completionTokens = createGptMessageRespDto.getUsage().getCompletionTokens();
+            int promptTokens = createGptMessageRespDto.getUsage().getPromptTokens();
+
+            System.out.println("promptTokens = " + promptTokens);
+            System.out.println("completionTokens = " + completionTokens);
+            System.out.println("totalTokens = " + totalTokens);
+
+            String content = choiceDto.getMessage().getContent();
+            String role = choiceDto.getMessage().getRole();
+
+            System.out.println("role = " + role);
+            System.out.println("content = " + content);
+
+            this.mandatoryRule = content;
+        }
+        @Schema(description = "자동 생성된 필수 규칙")
+        private String mandatoryRule;
+    }
 
     @Getter
     @NoArgsConstructor

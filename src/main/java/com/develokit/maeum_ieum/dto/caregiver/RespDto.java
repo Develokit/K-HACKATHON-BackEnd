@@ -116,6 +116,12 @@ public class RespDto {
             private boolean hasAssistant;
             @Schema(description = "AI 어시스턴트 아이디")
             private Long assistantId;
+
+            @Schema(description = "노인 접속 코드: AI 어시스턴트가 존재하지 않을 시 'AI 어시스턴트를 생성해주세요' 라는 문구가 반환")
+            private String accessCode;
+
+            @Schema(description = "AI 어시스턴트 이름")
+            private String assistantName;
             @Schema(description = "노인 프로필 사진")
             private String img;
 
@@ -128,7 +134,9 @@ public class RespDto {
                 this.elderlyId = elderly.getId();
                 this.hasAssistant = elderly.hasAssistant();
                 this.assistantId = hasAssistant?elderly.getAssistant().getId():null;
+                this.assistantName =hasAssistant?elderly.getAssistant().getName():null;
                 this.img = elderly.getImgUrl();
+                this.accessCode = hasAssistant?elderly.getAssistant().getAccessCode():"AI 어시스턴트를 생성해주세요";
             }
 
         }

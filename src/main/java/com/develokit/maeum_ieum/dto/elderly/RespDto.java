@@ -28,6 +28,7 @@ public class RespDto {
     public static class ElderlyInfoRespDto{
 
         public ElderlyInfoRespDto(Elderly elderly) {
+            this.accessCode = elderly.getAssistant()==null?"AI 어시스턴트를 생성해주세요":elderly.getAssistant().getAccessCode();
             this.name = elderly.getName();
             this.gender = elderly.getGender().toString().equals("MALE")?"남":"여";
             this.birthDate = CustomUtil.BirthDateToString(elderly.getBirthDate());
@@ -40,11 +41,18 @@ public class RespDto {
             this.relationship = elderly.getEmergencyContactInfo().getRelationship();
             this.assistantName = elderly.getAssistant()!=null?elderly.getAssistant().getName():null;
             this.reportDay = elderly.getReportDay().toString();
+            this.assistantId = elderly.getAssistant()==null?null:elderly.getAssistant().getId();
         }
 
         @Schema(description = "노인 이름: 최소 2글자 이상")
         @Nullable
         private String name; //이름
+
+        @Schema(description = "노인 접속 코드: AI 어시스턴트가 존재하지 않을 시 'AI 어시스턴트를 생성해주세요' 라는 문구가 반환")
+        private String accessCode;
+
+        @Schema(description = "어시스턴트 아이디")
+        private Long assistantId;
 
         @Schema(description = "노인 성별: FEMALE 또는 MALE")
         @Nullable
@@ -177,7 +185,7 @@ public class RespDto {
     public static class CheckAssistantInfoRespDto{
         @Schema(description = "스레드 아이디")
         private String threadId;
-        @Schema(description = "어시스턴트 이름")
+        @Schema(description = "AI 어시스턴트 이름")
         private String assistantName;
         @Schema(description = "OpenAI 요청을 위한 openAiAssistantId")
         private String openAiAssistantId;
