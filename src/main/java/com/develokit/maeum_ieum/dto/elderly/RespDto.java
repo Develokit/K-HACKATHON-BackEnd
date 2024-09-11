@@ -22,10 +22,27 @@ import java.util.List;
 import static com.develokit.maeum_ieum.dto.openAi.message.RespDto.*;
 
 public class RespDto {
+    @Getter
+    @AllArgsConstructor
+    @Schema(description = "주간 보고서 생성 요일 변경 응답 DTO")
+    public static class ElderlyReportDayModifyRespDto {
+        public ElderlyReportDayModifyRespDto(Elderly elderly){
+            this.elderlyId = elderly.getId();
+            this.reportDay = elderly.getReportDay().toString();
+        }
+
+        @Schema(description = "노인 아이디")
+        private Long elderlyId;
+
+        @Schema(description = "변경된 주간 보고서 생성 요일")
+        private String reportDay;
+    }
+
 
     @Getter
     @NoArgsConstructor
     public static class ElderlyInfoRespDto{
+
 
         public ElderlyInfoRespDto(Elderly elderly) {
             this.accessCode = elderly.getAssistant()==null?"AI 어시스턴트를 생성해주세요":elderly.getAssistant().getAccessCode();
@@ -42,11 +59,15 @@ public class RespDto {
             this.assistantName = elderly.getAssistant()!=null?elderly.getAssistant().getName():null;
             this.reportDay = elderly.getReportDay().toString();
             this.assistantId = elderly.getAssistant()==null?null:elderly.getAssistant().getId();
+            this.imgUrl = elderly.getImgUrl();
         }
 
         @Schema(description = "노인 이름: 최소 2글자 이상")
         @Nullable
         private String name; //이름
+        @Schema(description = "노인 프로필 사진")
+        @Nullable
+        private String imgUrl;
 
         @Schema(description = "노인 접속 코드: AI 어시스턴트가 존재하지 않을 시 'AI 어시스턴트를 생성해주세요' 라는 문구가 반환")
         private String accessCode;
@@ -292,6 +313,8 @@ public class RespDto {
     public static class ElderlyMainRespDto{
         @Schema(description = "요양사 이름")
         private String caregiverName;
+        @Schema(description = "요양사 아이디")
+        private Long caregiverId;
         @Schema(description = "요양사 연락처")
         private String caregiverContact;
         @Schema(description = "요양사 소속 조직")
@@ -321,6 +344,7 @@ public class RespDto {
             this.age = CustomUtil.calculateAge(elderly.getBirthDate());
             this.lastChatDate = CustomUtil.calculateHoursAgo(elderly.getLastChatTime());
             this.assistantId = elderly.getAssistant().getId();
+            this.caregiverId = caregiver.getId();
         }
 
     }

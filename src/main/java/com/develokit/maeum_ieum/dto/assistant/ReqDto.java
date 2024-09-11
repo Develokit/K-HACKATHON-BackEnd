@@ -16,7 +16,7 @@ public class ReqDto {
     @Getter
     @Schema(description = "노인 필수 규칙 자동 생성 요청을 위한 DTO")
     public static class AssistantMandatoryRuleReqDto{
-        @Schema(description = "간단한 필수 규칙 내용")
+        @Schema(description = "간단한 필수 규칙 내용: 100 자리 이내로 입력")
         @NotBlank(message = "필수 규칙 자동 생성을 위한 내용을 입력해야 합니다.")
         @Size(min = 1, max = 100, message = "100 자리 이내로 입력해야 합니다")
         private String content; //100자리

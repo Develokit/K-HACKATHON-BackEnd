@@ -2,24 +2,17 @@ package com.develokit.maeum_ieum.service;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
-import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
-import com.develokit.maeum_ieum.dto.assistant.ReqDto;
-import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto.JoinRespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.CustomAccessCodeGenerator;
-import com.develokit.maeum_ieum.util.CustomUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -272,12 +265,10 @@ public class CaregiverService {
     }
 
 
-    //TODO AI 필수 규칙 자동 생성
+    // AI 필수 규칙 자동 생성
     public Mono<AssistantMandatoryRuleRespDto> createAutoMandatoryRule(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqdto){
         return openAiService.createGptMessage(assistantMandatoryRuleReqdto);
     }
-
-
 
 
 

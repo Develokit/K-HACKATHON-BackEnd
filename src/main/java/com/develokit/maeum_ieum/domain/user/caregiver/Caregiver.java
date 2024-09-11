@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.domain.user.caregiver;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
 import com.develokit.maeum_ieum.domain.user.Gender;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
@@ -22,7 +23,6 @@ import static com.develokit.maeum_ieum.service.CaregiverService.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @AllArgsConstructor
-@ToString
 public class Caregiver extends User {
 
     @Id
@@ -37,12 +37,13 @@ public class Caregiver extends User {
     private String password;
 
     @OneToMany(mappedBy = "caregiver")
-    @ToString.Exclude
     private List<Assistant> assistantList = new ArrayList<>();
 
     @OneToMany(mappedBy = "caregiver")
-    @ToString.Exclude
     private List<Elderly> elderlyList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "caregiver") //긴급 알림 리스트
+    private List<EmergencyRequest> emergencyRequestList = new ArrayList<>();
 
     @Builder
     public Caregiver(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String username, String password, Role role) {

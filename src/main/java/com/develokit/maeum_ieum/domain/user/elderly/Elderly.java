@@ -41,7 +41,7 @@ public class Elderly extends User {
     @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
-    @OneToOne(mappedBy = "elderly")
+    @OneToOne(mappedBy = "elderly", fetch=FetchType.LAZY)
     private Assistant assistant;
     @Embedded
     private EmergencyContactInfo emergencyContactInfo;
@@ -94,11 +94,13 @@ public class Elderly extends User {
             this.emergencyContactInfo.emergencyName = elderlyModifyReqDto.getEmergencyName();
         if(elderlyModifyReqDto.getEmergencyContact() != null)
             this.emergencyContactInfo.emergencyContact = elderlyModifyReqDto.getEmergencyContact();
-        if(elderlyModifyReqDto.getReportDay() != null)
-            this.reportDay = DayOfWeek.valueOf(elderlyModifyReqDto.getReportDay());
     }
     public void updateImg(String imgUrl){
         super.updateImg(imgUrl);
+    }
+
+    public void modifyReportDay(DayOfWeek dayOfWeek){
+        this.reportDay = dayOfWeek;
     }
 
     public void deleteAssistant(){

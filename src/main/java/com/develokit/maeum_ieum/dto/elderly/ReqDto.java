@@ -16,6 +16,16 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 
 public class ReqDto {
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "주간 보고서 생성 요일 변경 요청 DTO")
+    public static class ElderlyReportDayModifyReqDto{
+        @Nullable
+        @Schema(description = "주간 보고서 생성 요일: MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY")
+        @Pattern(regexp = "^(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)$", message = "유효한 요일 형식이 아닙니다")
+        private String reportDay; //주간 보고서 생성 요일
+    }
+
 
     @Getter
     @NoArgsConstructor
@@ -74,11 +84,6 @@ public class ReqDto {
         @Nullable
         @Schema(description = "AI Assistant 이름")
         private String assistantName;
-
-        @Nullable
-        @Schema(description = "주간 보고서 생성 요일: MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY")
-        @Pattern(regexp = "^(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)$", message = "유효한 요일 형식이 아닙니다")
-        private String reportDay; //주간 보고서 생성 요일
 
     }
 

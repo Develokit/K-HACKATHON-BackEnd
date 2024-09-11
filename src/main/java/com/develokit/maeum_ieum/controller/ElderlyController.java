@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.controller;
 
 import com.develokit.maeum_ieum.config.openAI.ThreadWebClient;
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
 import com.develokit.maeum_ieum.dto.message.ReqDto.CreateStreamMessageReqDto;
 import com.develokit.maeum_ieum.dto.message.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
@@ -9,6 +10,7 @@ import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.ElderlyService;
+import com.develokit.maeum_ieum.service.EmergencyRequestService;
 import com.develokit.maeum_ieum.service.MessageService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +37,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
 import static com.develokit.maeum_ieum.dto.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 
@@ -47,6 +51,7 @@ public class ElderlyController implements ElderlyControllerDocs {
     private final ElderlyService elderlyService;
     private final MessageService messageService;
     private final AssistantService assistantService;
+    private final EmergencyRequestService emergencyRequestService;
 
     //접속 코드 확인
     @GetMapping("/access-code/{accessCode}")
@@ -103,6 +108,15 @@ public class ElderlyController implements ElderlyControllerDocs {
                 throw new CustomApiException("파일 저장 중 에러 발생",HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
+    }
+
+    //요양사에게 알림 전송
+    @PostMapping("/{elderlyId}/caregivers/{caregiverId}/emergency-alerts")
+    public ResponseEntity<?> createEmergencyRequest(@PathVariable(name = "caregiverId")Long caregiverId,
+                                                    @PathVariable(name=  "elderlyId")Long elderlyId,
+                                                    @Valid @RequestBody EmergencyRequestCreateReqDto emergencyRequestCreateReqDto,
+                                                    BindingResult bindingResult){
+        return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.createEmergencyRequest(elderlyId, caregiverId, emergencyRequestCreateReqDto)), HttpStatus.CREATED);
     }
 
 

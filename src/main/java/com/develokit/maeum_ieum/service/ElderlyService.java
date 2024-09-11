@@ -247,6 +247,18 @@ public class ElderlyService {
     }
 
 
+    //보고서 날짜 수정
+    @Transactional
+    public ElderlyReportDayModifyRespDto modifyReportDay(Long elderlyId, ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto){
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+        String reportDay = elderlyReportDayModifyReqDto.getReportDay();
+
+        elderlyPS.modifyReportDay(DayOfWeek.valueOf(reportDay));
+
+        return new ElderlyReportDayModifyRespDto(elderlyPS);
+    }
 
 
 

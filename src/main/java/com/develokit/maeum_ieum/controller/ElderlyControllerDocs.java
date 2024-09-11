@@ -20,6 +20,8 @@ import reactor.core.publisher.Flux;
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
 import static com.develokit.maeum_ieum.dto.message.ReqDto.*;
 
 @Tag(name = "노인 사용자 API", description = "노인 사용자가 호출하는 API 목록")
@@ -74,4 +76,16 @@ public interface ElderlyControllerDocs {
             @PathVariable(name = "elderlyId") Long elderlyId,
             @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto,
             BindingResult bindingResult);
+
+
+    @Operation(summary = "긴급 알림 전송", description = "연결된 요양사에게 긴급 알림 전송")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = EmergencyRequestCreateRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR(긴급 알림 요양사에게 전달 실패)", content = @Content(schema = @Schema(implementation = EmergencyRequestCreateRespDto.class), mediaType = "application/json"))
+
+    })
+    ResponseEntity<?> createEmergencyRequest(@PathVariable(name = "caregiverId")Long caregiverId,
+                                             @PathVariable(name=  "elderlyId")Long elderlyId,
+                                             @Valid @RequestBody EmergencyRequestCreateReqDto emergencyRequestCreateReqDto,
+                                             BindingResult bindingResult);
 }

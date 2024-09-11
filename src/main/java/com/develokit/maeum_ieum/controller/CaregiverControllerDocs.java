@@ -24,6 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
@@ -31,6 +32,7 @@ import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
 
 @Tag(name = "요양사 API", description = "요양사가 호출하는 API 목록")
 
@@ -198,5 +200,33 @@ public interface CaregiverControllerDocs {
             @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = ElderlyInfoRespDto.class), mediaType = "application/json")),
     })
     ResponseEntity<?> getElderlyInfo(@PathVariable(name = "elderlyId")Long elderlyId, @AuthenticationPrincipal LoginUser loginUser);
+
+    @Operation(summary = "AI 어시스턴트 필수 규칙 자동 생성 ", description = "AI 어시스턴트 필수 규칙 자동 생성 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = AssistantMandatoryRuleReqDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = AssistantMandatoryRuleReqDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "GPT 메시지 생성 과정에서 에러 발생", content = @Content(schema = @Schema(implementation = AssistantMandatoryRuleReqDto.class), mediaType = "application/json")),
+    })
+    Mono<ResponseEntity<?>> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                    @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
+                                                    BindingResult bindingResult,
+                                                    @AuthenticationPrincipal LoginUser loginUser);
+    @Operation(summary = "알림 내역 페이지 조회 ", description = "관리하는 노인 사용자가 발행한 알림 내역 조회: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = EmergencyRequestListRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = EmergencyRequestListRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = EmergencyRequestListRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> getEmergencyRequestList(@AuthenticationPrincipal LoginUser loginUser);
+
+    @Operation(summary = "주간 보고서 생성 날짜 수정 ", description = "주간 보고서 생성 날짜 수정: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = ElderlyReportDayModifyRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = ElderlyReportDayModifyRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = ElderlyReportDayModifyRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> modifyElderlyReportDay(@PathVariable(name = "elderlyId")Long elderlyId,
+                                             @RequestBody@Valid ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto,
+                                             @AuthenticationPrincipal LoginUser loginUser );
 
 }

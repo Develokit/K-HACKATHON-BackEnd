@@ -11,6 +11,16 @@ import java.time.format.DateTimeFormatter;
 
 
 public class CustomUtil {
+    public static String convertToRelativeTimeString(LocalDateTime localDateTime){
+        Duration duration = Duration.between(localDateTime, LocalDateTime.now());
+        long days = duration.toDays();
+
+        if(days==0) return localDateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+        else return days+"일 전";
+        //else if(days <= 7) return days+"일 전"; //일주일까지는 'n일 전'으로 반환
+        //else return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    }
 
     public static String LocalDateTimeFormatForChatResponse(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
@@ -29,7 +39,7 @@ public class CustomUtil {
     public static int calculateAge(LocalDate birthDate){
         LocalDate currentDate = LocalDate.now();
         if ((birthDate != null) && (currentDate != null)) {
-            return Period.between(birthDate, currentDate).getYears();
+            return Period.between(birthDate, currentDate).getYears()+1;
         } else {
             return 0;
         }

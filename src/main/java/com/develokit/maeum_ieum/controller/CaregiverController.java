@@ -11,6 +11,7 @@ import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.service.ElderlyService;
+import com.develokit.maeum_ieum.service.EmergencyRequestService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,6 +49,7 @@ public class CaregiverController implements CaregiverControllerDocs {
     private final CaregiverService caregiverService;
     private final ElderlyService elderlyService;
     private final AssistantService assistantService;
+    private final EmergencyRequestService emergencyRequestService;
     private final Logger log = LoggerFactory.getLogger(CaregiverController.class);
 
     @GetMapping("/check-username/{username}")
@@ -165,6 +167,21 @@ public class CaregiverController implements CaregiverControllerDocs {
                         .status(HttpStatus.CREATED)
                         .body(ApiUtil.success(assistantMandatoryRuleRespDto))
                 );
+    }
+    //알림 내역 조회
+    @RequireAuth
+    @GetMapping("/emergency-alerts")
+    public ResponseEntity<?> getEmergencyRequestList(@AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.getEmergencyRequestList(loginUser.getUsername())), HttpStatus.OK);
+    }
+
+    //보고서 날짜 수정
+    @RequireAuth
+    @PatchMapping("/elderlys/{elderlyId}/report")
+    public ResponseEntity<?> modifyElderlyReportDay(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                    @RequestBody@Valid ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto,
+                                                    @AuthenticationPrincipal LoginUser loginUser ){
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyReportDay(elderlyId, elderlyReportDayModifyReqDto)), HttpStatus.OK);
     }
 
 
