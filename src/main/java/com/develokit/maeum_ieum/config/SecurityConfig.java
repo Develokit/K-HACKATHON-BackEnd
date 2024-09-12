@@ -69,6 +69,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/caregivers","/check-username/{username}").permitAll()
                     //.requestMatchers("/caregivers/elderlys").hasAuthority("ROLE_ADMIN")
                         //.requestMatchers("/caregivers/elderlys", "/caregivers", "/caregivers/elderlys/{elderlyId}/assistants", "/caregivers/mypage", "caregivers/mypage/image", "/caregivers/elderlys/{elderlyId}/image", "/caregivers/elderlys/{elderlyId}/assistants/{assistantId}").authenticated()
                         .anyRequest().permitAll()

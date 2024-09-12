@@ -5,6 +5,7 @@ import com.develokit.maeum_ieum.domain.base.BaseEntity;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,18 +32,51 @@ public class Report extends BaseEntity {
     private LocalDateTime endDate;// 보고서 기록 종료 일
 
     @Column(length = 2048)
-    private String analysisResult; //분석 결과
+    private String quantitativeAnalysis; //정량적 분석 결과
 
+    @Column(length = 2048)
+    private String qualitativeAnalysis; //정성적 분석
+
+    @Enumerated(EnumType.STRING)
+    private HealthStatus healthStatus; //건강 상태 지표
+
+    @Column(length = 512)
     private String memo; //메모
 
+    @Enumerated(EnumType.STRING)
+    private ReportStatus reportStatus;
+
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek reportDay;
+
+    @Builder
+    public Report(Elderly elderly, ReportType reportType, LocalDateTime startDate, LocalDateTime endDate, String quantitativeAnalysis, String qualitativeAnalysis, HealthStatus healthStatus, String memo, ReportStatus reportStatus, DayOfWeek reportDay) {
+        this.elderly = elderly;
+        this.reportType = reportType;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.quantitativeAnalysis = quantitativeAnalysis;
+        this.qualitativeAnalysis = qualitativeAnalysis;
+        this.healthStatus = healthStatus;
+        this.memo = memo;
+        this.reportStatus = reportStatus;
+        this.reportDay = reportDay;
+    }
+    public void modifyStartDateAndReportDay(LocalDateTime localDateTime, DayOfWeek dayOfWeek){
+        this.startDate = localDateTime;
+        this.reportDay = dayOfWeek;
+    }
+
+    public void updateReportStatus(ReportStatus reportStatus){
+        this.reportStatus = reportStatus;
+    }
+
+    public void updateEndDate(LocalDateTime localDateTime){
+        this.endDate = localDateTime;
+    }
     /*
-
-
-    보고서 지표들
-
-
-
-     */
+        보고서 지표들
+         */
     public Report(Elderly elderly, LocalDateTime startDate, LocalDateTime endDate, ReportType reportType){
         this.elderly = elderly;
         this.startDate = startDate;

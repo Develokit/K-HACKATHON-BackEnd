@@ -40,7 +40,7 @@ public class Assistant extends BaseEntity {
     @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "elderly_id")
     private Elderly elderly;
 

@@ -1,12 +1,7 @@
 package com.develokit.maeum_ieum.controller;
 
-import com.develokit.maeum_ieum.config.openAI.ThreadWebClient;
-import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
 import com.develokit.maeum_ieum.dto.message.ReqDto.CreateStreamMessageReqDto;
-import com.develokit.maeum_ieum.dto.message.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
-import com.develokit.maeum_ieum.dto.openAi.message.ReqDto;
-import com.develokit.maeum_ieum.dto.openAi.message.ReqDto.ContentDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.ElderlyService;
@@ -15,15 +10,7 @@ import com.develokit.maeum_ieum.service.MessageService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.message.StringFormattedMessage;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -35,10 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.*;
-import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
 import static com.develokit.maeum_ieum.dto.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 

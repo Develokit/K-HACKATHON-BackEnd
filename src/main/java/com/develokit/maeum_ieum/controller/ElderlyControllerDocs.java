@@ -1,7 +1,5 @@
 package com.develokit.maeum_ieum.controller;
 
-import com.develokit.maeum_ieum.dto.assistant.ReqDto;
-import com.develokit.maeum_ieum.dto.elderly.RespDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -18,13 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
-import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
+import static com.develokit.maeum_ieum.dto.assistant.RespDto.VerifyAccessCodeRespDto;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
-import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.*;
-import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
-import static com.develokit.maeum_ieum.dto.message.ReqDto.*;
-import static com.develokit.maeum_ieum.dto.openAi.audio.RespDto.*;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.EmergencyRequestCreateReqDto;
+import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.EmergencyRequestCreateRespDto;
+import static com.develokit.maeum_ieum.dto.message.ReqDto.CreateStreamMessageReqDto;
+import static com.develokit.maeum_ieum.dto.message.RespDto.CreateStreamMessageRespDto;
+import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.CreateAudioReqDto;
+import static com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
 
 @Tag(name = "노인 사용자 API", description = "노인 사용자가 호출하는 API 목록")
 public interface ElderlyControllerDocs {
@@ -70,7 +69,7 @@ public interface ElderlyControllerDocs {
 
     @Operation(summary = "채팅 (스트림 답변)", description = "텍스트 기반 채팅 시 요청. 스트림으로 메시지 반환")
     @ApiResponses( value = {
-            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), examples = {
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CreateStreamMessageRespDto.class), examples = {
                     @ExampleObject(
                             name = "isLast:false -> 응답 받아야 할 답변이 더 있는 상태",
                             value = "{\n  \"answer\": \"가\",\n  \"isLast\": false,\n  \"timeStamp\": null\n}",
@@ -82,10 +81,10 @@ public interface ElderlyControllerDocs {
                             summary = "답변 생성 완료"
                     )
             }, mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = CheckAssistantInfoRespDto.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "500", description = "OPENAI_SERVER_ERROR | INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = CreateStreamMessageRespDto.class), mediaType = "application/json"))
 
     })
-    Flux<com.develokit.maeum_ieum.dto.message.RespDto.CreateStreamMessageRespDto> createStreamMessage(
+    Flux<CreateStreamMessageRespDto> createStreamMessage(
             @PathVariable(name = "elderlyId") Long elderlyId,
             @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto,
             BindingResult bindingResult);
@@ -106,10 +105,10 @@ public interface ElderlyControllerDocs {
     @Operation(summary = "채팅(오디오 답변)", description = "음성 기반 채팅 시 요청")
     @ApiResponses( value = {
             @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CreateAudioRespDto.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR(긴급 알림 요양사에게 전달 실패)", content = @Content(schema = @Schema(implementation = CreateAudioRespDto.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = CreateAudioRespDto.class), mediaType = "application/json"))
 
     })
     Mono<?> createVoiceMessage(@PathVariable(name = "elderlyId")Long elderlyId,
-                               @Valid @RequestBody com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.CreateAudioReqDto createAudioReqDto,
+                               @Valid @RequestBody CreateAudioReqDto createAudioReqDto,
                                BindingResult bindingResult);
 }
