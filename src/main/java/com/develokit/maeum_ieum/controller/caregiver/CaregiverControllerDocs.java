@@ -1,4 +1,4 @@
-package com.develokit.maeum_ieum.controller;
+package com.develokit.maeum_ieum.controller.caregiver;
 
 import com.develokit.maeum_ieum.config.jwt.RequireAuth;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
@@ -217,7 +217,9 @@ public interface CaregiverControllerDocs {
             @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = EmergencyRequestListRespDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = EmergencyRequestListRespDto.class), mediaType = "application/json")),
     })
-    ResponseEntity<?> getEmergencyRequestList(@AuthenticationPrincipal LoginUser loginUser);
+    ResponseEntity<?> getEmergencyRequestList(@RequestParam(name = "page", defaultValue = "0")int page,
+                                              @RequestParam(name = "size", defaultValue = "10")int size,
+                                              @AuthenticationPrincipal LoginUser loginUser);
 
     @Operation(summary = "주간 보고서 생성 날짜 수정 ", description = "주간 보고서 생성 날짜 수정: jwt 토큰 사용")
     @ApiResponses( value = {

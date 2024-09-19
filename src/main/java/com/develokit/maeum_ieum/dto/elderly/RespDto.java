@@ -47,7 +47,7 @@ public class RespDto {
 
 
         public ElderlyInfoRespDto(Elderly elderly) {
-            this.accessCode = elderly.getAssistant()==null?"AI 어시스턴트를 생성해주세요":elderly.getAssistant().getAccessCode();
+            this.accessCode = elderly.hasAssistant()?elderly.getAccessCode():"AI 어시스턴트를 생성해주세요";
             this.name = elderly.getName();
             this.gender = elderly.getGender().toString().equals("MALE")?"남":"여";
             this.birthDate = CustomUtil.BirthDateToString(elderly.getBirthDate());
@@ -260,7 +260,9 @@ public class RespDto {
         @NoArgsConstructor
         @Schema(description = "페이지 정보")
         public static class PageInfo {
+            @Schema(description = "페이지 번호")
             private int page;
+            @Schema(description = "페이지에 반환되는 수")
             private int size;
 
             public PageInfo(int page, int size) {

@@ -28,8 +28,8 @@ public class Assistant extends BaseEntity {
     private String openAiAssistantId; //실제 OpenAI에 등록되는 어시스턴트 아이디
     private String name; //어시스턴트 이름
 
-    @Column(length = 5)
-    private String accessCode; //접근 코드
+//    @Column(length = 5)
+//    private String accessCode; //접근 코드
 
     private String openAiInstruction;// openAI에 등록되는 실제 프롬프트
 
@@ -40,9 +40,9 @@ public class Assistant extends BaseEntity {
     @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "elderly_id")
-    private Elderly elderly;
+//    @OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "elderly_id")
+//    private Elderly elderly;
 
     private String conversationTopic; //대화 주제
     private String responseType; //응답 형식
@@ -61,23 +61,20 @@ public class Assistant extends BaseEntity {
         if(threadId == null) return false;
         else return true;
     }
-
-
     @Builder
-    public Assistant(String name, Caregiver caregiver, Elderly elderly, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId, String accessCode, String openAiInstruction, String mandatoryRule) {
+    public Assistant(String name, Caregiver caregiver, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId, String openAiInstruction, String mandatoryRule) {
         this.name = name;
         this.caregiver = caregiver;
-        this.elderly = elderly;
         this.conversationTopic = conversationTopic;
         this.responseType = responseType;
         this.personality = personality;
         this.forbiddenTopic = forbiddenTopic;
         this.openAiAssistantId = openAiAssistantId;
-        this.accessCode = accessCode;
         this.openAiInstruction = openAiInstruction;
         this.mandatoryRule = mandatoryRule;
         caregiver.getAssistantList().add(this);
     }
+
     public void modifyAssistantName(String assistantName){
         if(assistantName != null)
             this.name = assistantName;

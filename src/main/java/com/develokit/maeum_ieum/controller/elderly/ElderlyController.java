@@ -1,4 +1,4 @@
-package com.develokit.maeum_ieum.controller;
+package com.develokit.maeum_ieum.controller.elderly;
 
 import com.develokit.maeum_ieum.dto.message.ReqDto.CreateStreamMessageReqDto;
 import com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;

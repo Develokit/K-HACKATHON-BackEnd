@@ -108,6 +108,9 @@ public class RespDto {
             private int age;
             @Schema(description = "노인 연락처")
             private String contact;
+
+            @Schema(description = "노인 주소")
+            private String homeAddress;
             @Schema(description = "마지막 대화 시간: 마지막 대화 시간이 있다면 'n시간 전' 으로 나가고, 마지막 대화 시간이 없으면 '없음'으로 나감")
             private String lastChatTime;
             @Schema(description = "노인 사용자 아이디")
@@ -136,7 +139,8 @@ public class RespDto {
                 this.assistantId = hasAssistant?elderly.getAssistant().getId():null;
                 this.assistantName =hasAssistant?elderly.getAssistant().getName():null;
                 this.img = elderly.getImgUrl();
-                this.accessCode = hasAssistant?elderly.getAssistant().getAccessCode():"AI 어시스턴트를 생성해주세요";
+                this.accessCode = hasAssistant?elderly.getAccessCode():"AI 어시스턴트를 생성해주세요";
+                this.homeAddress = elderly.getHomeAddress();
             }
 
         }

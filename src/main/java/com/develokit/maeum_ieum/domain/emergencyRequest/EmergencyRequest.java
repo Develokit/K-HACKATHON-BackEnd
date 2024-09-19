@@ -21,6 +21,7 @@ public class EmergencyRequest extends BaseEntity {
     @JoinColumn(name = "elderly_id", nullable = false)
     private Elderly elderly; //노인 사용자
 
+
     private String message; //최종 반환 알림 메시지
 
     @ManyToOne(fetch = FetchType.LAZY)

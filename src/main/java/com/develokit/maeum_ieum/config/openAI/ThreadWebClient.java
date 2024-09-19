@@ -13,15 +13,12 @@ import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.jmx.export.annotation.ManagedNotifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -32,8 +29,6 @@ import reactor.core.scheduler.Schedulers;
 
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.run.ReqDto.*;
@@ -47,7 +42,7 @@ public class ThreadWebClient {
     private final WebClient webClient;
 
     private final MessageRepository messageRepository;
-    private static final Logger logger = LoggerFactory.getLogger(ThreadWebClient.class);
+    private static final Logger log = LoggerFactory.getLogger(ThreadWebClient.class);
 
     //메시지 생성
     public Flux<MessageRespDto> createMessage(String threadId, CreateMessageReqDto createMessageReqDto){
@@ -56,8 +51,9 @@ public class ThreadWebClient {
                 .bodyValue(createMessageReqDto)
                 .retrieve()
                 .bodyToFlux(MessageRespDto.class)
+                .doOnSubscribe(subscription -> log.info("OPENAI에 메시지 생성 요청 전송"))
                 .doOnError(WebClientResponseException.class, e -> {
-                    logger.error(e.getMessage());
+                    log.error(e.getMessage());
                     throw new CustomApiException("메시지 생성 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 });
     }
@@ -68,8 +64,9 @@ public class ThreadWebClient {
                 .bodyValue(createMessageReqDto)
                 .retrieve()
                 .bodyToMono(MessageRespDto.class)
+                .doOnSubscribe(subscription -> log.info("OPENAI에 단일 메시지 생성 요청 전송"))
                 .doOnError(WebClientResponseException.class, e -> {
-                    logger.error(e.getMessage());
+                    log.error(e.getMessage());
                     throw new CustomApiException("메시지 생성 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 });
     }
@@ -81,8 +78,9 @@ public class ThreadWebClient {
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
                 })
+                .doOnSubscribe(subscription -> log.info("OPENAI에 스트림 런 생성 요청 전송"))
                 .doOnError(WebClientResponseException.class, e -> {
-                    logger.error(e.getMessage());
+                    log.error(e.getMessage());
                     throw new CustomApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 })
                 .filter(event -> "thread.message.delta".equals(event.event()) ||  "thread.message.completed".equals(event.event()))
@@ -126,7 +124,7 @@ public class ThreadWebClient {
                                     sink.error(new CustomApiException("답변 생성 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                                 }
                             } catch (JsonProcessingException e) {
-                                logger.error(e.getMessage());
+                                log.error(e.getMessage());
                                 sink.error(new CustomApiException("답변 직렬화 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                             }
                         });
@@ -148,8 +146,9 @@ public class ThreadWebClient {
                 .bodyValue(createRunReqDto)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {}) //SSE 스트림
+                .doOnSubscribe(subscription -> log.info("OPENAI에 비스트림 런 생성 요청 전송"))
                 .doOnError(WebClientResponseException.class, e -> {
-                    logger.error(e.getMessage());
+                    log.error(e.getMessage());
                     throw new CustomApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 })
                 .filter(event -> "thread.message.completed".equals(event.event()))
@@ -166,7 +165,7 @@ public class ThreadWebClient {
                         }
                         return Mono.just("");
                     } catch (JsonProcessingException e) {
-                        logger.error(e.getMessage());
+                        log.error(e.getMessage());
                         return Mono.error(new CustomApiException("답변 생성 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                     }
                 });
@@ -179,9 +178,10 @@ public class ThreadWebClient {
                 .bodyValue(audioRequestDto)
                 .retrieve()
                 .bodyToMono(byte[].class)
+                .doOnSubscribe(subscription -> log.info("OPENAI에 오디오 생성 요청 전송"))
                 .map(audio -> new CreateAudioRespDto(audio, audioRequestDto.getInput(), CustomUtil.LocalDateTimeFormatForChatResponse(aiMessageCreateTime)))
                 .doOnError(WebClientResponseException.class, e -> {
-                    logger.error(e.getMessage());
+                    log.error(e.getMessage());
                     throw new CustomApiException("오디오 생성 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 });
     }

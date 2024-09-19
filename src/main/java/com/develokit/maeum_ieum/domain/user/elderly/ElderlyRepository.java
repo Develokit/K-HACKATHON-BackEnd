@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface ElderlyRepository extends JpaRepository<Elderly, Long> {
     Optional<Elderly> findByContact(String contact);
 
-    Optional<Elderly> findByAssistant(Assistant assistant);
-
     List<Elderly> findByReportDay(DayOfWeek dayOfWeek);
 
     List<Elderly> findByCaregiverIdAndIdAfter(Long caregiverId, Long decodeCursor, PageRequest pageRequest);
+
+    Optional<Elderly> findByAccessCode(String accessCode);
 }

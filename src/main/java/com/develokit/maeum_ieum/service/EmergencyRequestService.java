@@ -16,6 +16,10 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,13 +68,18 @@ public class EmergencyRequestService {
     }
 
 
-    //TODO 알림 화면 조회
-    public EmergencyRequestListRespDto getEmergencyRequestList(String username){
+    //알림 화면 조회
+    public EmergencyRequestListRespDto getEmergencyRequestList(String username, int page, int size){
         //요양사 조회
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
-        return new EmergencyRequestListRespDto(caregiverPS);
+        //페이징
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<EmergencyRequest> emergencyRequestList = emergencyRequestRepository.findByCaregiver(caregiverPS, pageable);
+
+        return new EmergencyRequestListRespDto(emergencyRequestList, size);
     }
 
 

@@ -9,6 +9,5 @@ import java.util.Optional;
 @Repository
 public interface AssistantRepository extends JpaRepository<Assistant, Long> {
 
-    Optional<Assistant> findByAccessCode(String accessCode);
 
 }

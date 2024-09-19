@@ -7,6 +7,7 @@ import com.develokit.maeum_ieum.domain.message.MessageRepository;
 import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
+import com.develokit.maeum_ieum.domain.report.ReportType;
 import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
@@ -271,20 +272,36 @@ public class ElderlyService {
 
         elderlyPS.modifyReportDay(DayOfWeek.valueOf(reportDay));
 
+        //TODO 생성된 주간 보고서와 월간 보고서가 있는지 확인
         //보고서 날짜 수정 전에 기록을 위해 생성된 빈 보고서가 있는지 확인
         Optional<Report> reportOP = reportRepository.findLatestByElderly(elderlyPS);
+
+
         if(reportOP.isEmpty()){ //비어 있으면, 즉 최초로 보고서 생성 날을 지정한 경우이면 바로 보고서 생성
-            Report report = Report.builder()
+            Report weeklyreport = Report.builder()
                     .reportStatus(ReportStatus.PENDING)
                     .elderly(elderlyPS)
+                    .reportType(ReportType.WEEKLY)
                     .startDate(LocalDateTime.now())
                     .reportDay(DayOfWeek.valueOf(reportDay))
                     .build();
 
-            reportRepository.save(report);
+            Report monthlyreport = Report.builder()
+                    .reportStatus(ReportStatus.PENDING)
+                    .elderly(elderlyPS)
+                    .reportType(ReportType.WEEKLY)
+                    .startDate(LocalDateTime.now())
+                    .reportDay(DayOfWeek.valueOf(reportDay))
+                    .build();
+
+            reportRepository.save(weeklyreport);
+            reportRepository.save(monthlyreport);
         }
         else{ //보고서가 있다면, 시작 날짜와 발행 요일을 현재 시각과 reportDay로 수정
-            reportOP.get().modifyStartDateAndReportDay(LocalDateTime.now(), DayOfWeek.valueOf(reportDay));
+
+            //TODO DB에서 PENDING 상태의 보고서 끌고와서 수정
+
+            //reportOP.get().modifyStartDateAndReportDay(LocalDateTime.now(), DayOfWeek.valueOf(reportDay));
         }
         return new ElderlyReportDayModifyRespDto(elderlyPS);
     }

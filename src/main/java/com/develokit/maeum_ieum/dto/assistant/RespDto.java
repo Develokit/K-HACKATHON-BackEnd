@@ -87,9 +87,9 @@ public class RespDto {
         private Long assistantId;
         private Long elderlyId;
 
-        public VerifyAccessCodeRespDto(Assistant assistant){
-            this.assistantId = assistant.getId();
-            this.elderlyId = assistant.getElderly().getId();
+        public VerifyAccessCodeRespDto(Elderly elderly){
+            this.assistantId = elderly.getAssistant().getId();
+            this.elderlyId = elderly.getId();
         }
     }
 }

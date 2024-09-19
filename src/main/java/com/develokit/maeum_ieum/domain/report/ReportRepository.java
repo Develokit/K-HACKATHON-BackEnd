@@ -18,8 +18,35 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     int findByStartDate(@Param(value = "elderly")Elderly elderly, @Param(value = "startDate")LocalDateTime startDate);
 
     @Query("select r from Report r where r.elderly = :elderly order by r.startDate desc limit 1")
-    Optional<Report> findLatestByElderly(@Param("Elderly")Elderly elderly );
+    Optional<Report> findLatestByElderly(@Param("elderly")Elderly elderly );
+
+    @Query("SELECT r FROM Report r WHERE r.startDate <= :date AND r.reportStatus = :status")
+    List<Report> findReportsReadyForProcessing(@Param("date") LocalDateTime date, @Param("status") ReportStatus status);
+
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r " +
+            "WHERE r.elderly = :elderly " +
+            "AND r.reportType = :reportType " +
+            "AND r.reportStatus = :reportStatus " +
+            "AND r.startDate BETWEEN :startDate AND :endDate")
+    boolean existsByElderlyAndReportTypeAndReportStatusAndStartDateInLastWeek(
+            @Param("elderly") Elderly elderly,
+            @Param("reportType") ReportType reportType,
+            @Param("reportStatus") ReportStatus reportStatus,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
 
-    List<Report> findByReportDayAndReportStatus(DayOfWeek reportDay, ReportStatus reportStatus);
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r " +
+            "WHERE r.elderly = :elderly " +
+            "AND r.reportType = :reportType " +
+            "AND r.reportStatus = :reportStatus " +
+            "AND r.startDate BETWEEN :startDate AND :endDate")
+    boolean existsByElderlyAndReportTypeAndReportStatusAndStartDateGreaterThanEqual(
+            @Param("elderly") Elderly elderly,
+            @Param("reportType") ReportType reportType,
+            @Param("reportStatus") ReportStatus reportStatus,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    List<Report> findByElderly(Elderly eldelry);
 }

@@ -8,6 +8,7 @@ import com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto;
 import com.develokit.maeum_ieum.dto.openAi.gpt.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.message.RespDto.ListMessageRespDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import feign.FeignException;
 import lombok.*;
 
 import org.slf4j.Logger;
@@ -57,11 +58,16 @@ public class OpenAiService {
                     openAiCreateAssistantReqDto.getDescription()
                     )
             );
-            log.debug("어시스턴트 생성!!");
+
+            log.info("Assistant created successfully. Response: {}", assistantRespDto);
             return assistantRespDto.getId();
 
-        }catch (Exception e){
-            throw new CustomApiException(e.getMessage());
+        } catch (FeignException fe) {
+            log.error("OpenAI API 호출 과정에서 에러 발생. Status: {}, Body: {}", fe.status(), fe.contentUTF8(), fe);
+            throw new CustomApiException("OPENAI_SERVER_ERROR", fe.status(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e){
+            log.error("AI Assistant 생성 과정에서 에러 발생 ", e);
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -70,7 +76,7 @@ public class OpenAiService {
         try{
             return threadFeignClient.createThreads(new CreateThreadReqDto());
         }catch (Exception e){
-            throw new CustomApiException(e.getMessage());
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     //메시지 리스트 조회
@@ -78,7 +84,7 @@ public class OpenAiService {
         try{
             return threadFeignClient.listMessages(threadId);
         }catch (Exception e){
-            throw new CustomApiException(e.getMessage());
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -95,7 +101,7 @@ public class OpenAiService {
                             .build()
             );
         }catch (Exception e){
-            throw new CustomApiException(e.getMessage());
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

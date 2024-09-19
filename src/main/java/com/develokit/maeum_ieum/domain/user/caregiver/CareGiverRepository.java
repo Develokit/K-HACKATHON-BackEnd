@@ -1,5 +1,6 @@
 package com.develokit.maeum_ieum.domain.user.caregiver;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +18,5 @@ public interface CareGiverRepository extends JpaRepository<Caregiver, Long> {
 
     @Query("select c from Caregiver c")
     List<Caregiver> findAll();
+
 }

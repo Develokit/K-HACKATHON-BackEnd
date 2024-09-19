@@ -36,11 +36,11 @@ public class RespDto {
 
         @Schema(description = "노인 사용자 접속 코드")
         private String accessCode;
-        public CreateAssistantRespDto(Assistant assistant){
+        public CreateAssistantRespDto(Assistant assistant, String accessCode){
             this.assistantId = assistant.getId();
             this.name = assistant.getName();
             this.mandatoryRule = assistant.getMandatoryRule();
-            this.accessCode = assistant.getAccessCode();
+            this.accessCode = accessCode;
             this.conversationTopic = assistant.getConversationTopic()!=null?assistant.getConversationTopic():null;
             this.responseType = assistant.getResponseType()!=null?assistant.getResponseType():null;
             this.personality = assistant.getPersonality()!=null?assistant.getPersonality():null;

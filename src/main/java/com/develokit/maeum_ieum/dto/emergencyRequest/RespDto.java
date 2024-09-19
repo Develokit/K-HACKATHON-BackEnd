@@ -2,14 +2,14 @@ package com.develokit.maeum_ieum.dto.emergencyRequest;
 
 import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
 import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyType;
-import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.util.CustomUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,21 +38,55 @@ public class RespDto {
     }
     @NoArgsConstructor
     @Getter
+    @AllArgsConstructor
     @Schema(description = "요양사 알림 내역 화면 응답 DTO")
     public static class EmergencyRequestListRespDto{
-        public EmergencyRequestListRespDto(Caregiver caregiver) {
-            this.emergencyRequestDtoList = caregiver.getEmergencyRequestList().stream()
-                    .map(EmergencyRequestDto::new)
+        public EmergencyRequestListRespDto(Page<EmergencyRequest> emergencyRequestList, int size) {
+            this.emergencyRequests =  emergencyRequestList.stream()
+                    .map(EmergencyRequestRespDto::new)
                     .collect(Collectors.toList());
+            this.currentPage = emergencyRequestList.getNumber();
+            this.totalPages = emergencyRequestList.getTotalPages();
+            this.size = this.emergencyRequests.size();
+            this.previous = emergencyRequestList.hasPrevious()?new PageInfo(this.currentPage-1, size):null;
+            this.next = emergencyRequestList.hasNext()?new PageInfo(this.currentPage+1, size):null;
         }
+        @Schema(description = "현재 페이지 번호")
+        private int currentPage;
+        @Schema(description = "전체 페이지 수")
+        private int totalPages;
+        @Schema(description = "이전 페이지 정보")
+        private PageInfo previous;
+
+        @Schema(description = "다음 페이지 정보")
+        private PageInfo next;
+
+        @Schema(description = "현재 페이지에 반환되는 알림 내역 수")
+        private int size;
+
         @Schema(description = "알림 내역 응답 DTO 리스트")
-        private List<EmergencyRequestDto> emergencyRequestDtoList = new ArrayList<>();
+        private List<EmergencyRequestRespDto> emergencyRequests;
+        @Getter
+        @NoArgsConstructor
+        @Schema(description = "페이지 정보")
+        public static class PageInfo {
+            @Schema(description = "페이지 번호")
+            private int page;
+            @Schema(description = "페이지에 반환되는 수")
+
+            private int size;
+
+            public PageInfo(int page, int size) {
+                this.page = page;
+                this.size = size;
+            }
+        }
 
         @NoArgsConstructor
         @Getter
         @Schema(description = "알림 내역 응답 DTO")
-        public static class EmergencyRequestDto{
-            public EmergencyRequestDto(EmergencyRequest emergencyRequest) {
+        public static class EmergencyRequestRespDto{
+            public EmergencyRequestRespDto(EmergencyRequest emergencyRequest) {
                 this.homeAddress = emergencyRequest.getElderly().getHomeAddress();
                 this.contact = emergencyRequest.getElderly().getContact();
                 this.createdDate = CustomUtil.convertToRelativeTimeString(emergencyRequest.getCreatedDate());

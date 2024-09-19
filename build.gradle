@@ -57,6 +57,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 }
+compileJava {
+	options.compilerArgs += ['-parameters']
+}
 
 dependencyManagement {
 	imports {

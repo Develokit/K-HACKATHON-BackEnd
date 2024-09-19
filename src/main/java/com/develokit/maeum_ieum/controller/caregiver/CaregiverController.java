@@ -1,26 +1,17 @@
-package com.develokit.maeum_ieum.controller;
+package com.develokit.maeum_ieum.controller.caregiver;
 
 import com.develokit.maeum_ieum.config.jwt.RequireAuth;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
-import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.dto.assistant.ReqDto.CreateAssistantReqDto;
-import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
-import com.develokit.maeum_ieum.dto.elderly.RespDto;
-import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.service.ElderlyService;
 import com.develokit.maeum_ieum.service.EmergencyRequestService;
 import com.develokit.maeum_ieum.util.ApiUtil;
-import com.develokit.maeum_ieum.util.api.ApiResult;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,14 +23,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
-import javax.print.attribute.standard.Media;
-import java.beans.BeanInfo;
-import java.net.MalformedURLException;
-
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
-import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -85,7 +71,7 @@ public class CaregiverController implements CaregiverControllerDocs {
                                              @PathVariable(name = "elderlyId")Long elderlyId,
                                              BindingResult bindingResult,
                                              @AuthenticationPrincipal LoginUser loginUser){
-        return new ResponseEntity<>(ApiUtil.success(caregiverService.attachAssistantToElderly(createAssistantReqDto, elderlyId, loginUser.getCaregiver().getUsername())),HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiUtil.success(assistantService.attachAssistantToElderly(createAssistantReqDto, elderlyId, loginUser.getCaregiver().getUsername())),HttpStatus.CREATED);
     }
 
     @RequireAuth
@@ -171,8 +157,10 @@ public class CaregiverController implements CaregiverControllerDocs {
     //알림 내역 조회
     @RequireAuth
     @GetMapping("/emergency-alerts")
-    public ResponseEntity<?> getEmergencyRequestList(@AuthenticationPrincipal LoginUser loginUser){
-        return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.getEmergencyRequestList(loginUser.getUsername())), HttpStatus.OK);
+    public ResponseEntity<?> getEmergencyRequestList(@RequestParam(name = "page", defaultValue = "0")int page,
+                                                     @RequestParam(name = "size", defaultValue = "10")int size,
+                                                     @AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.getEmergencyRequestList(loginUser.getUsername(), page, size)), HttpStatus.OK);
     }
 
     //보고서 날짜 수정

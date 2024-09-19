@@ -25,8 +25,9 @@ import java.util.List;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@NoArgsConstructor
 public class Elderly extends User {
 
     @Id
@@ -41,8 +42,13 @@ public class Elderly extends User {
     @JoinColumn(name = "caregiver_id", nullable = false)
     private Caregiver caregiver;
 
-    @OneToOne(mappedBy = "elderly", fetch=FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assistant_id")
     private Assistant assistant;
+
+    @Column(length = 5)
+    private String accessCode;
+
     @Embedded
     private EmergencyContactInfo emergencyContactInfo;
 
@@ -65,6 +71,9 @@ public class Elderly extends User {
     }
     public void attachAssistant(Assistant assistant){
         this.assistant = assistant;
+    }
+    public void attachAccessCode(String accessCode){
+        this.accessCode = accessCode;
     }
 
     public void updateLastChatDate(LocalDateTime lastChatTime){
@@ -105,5 +114,8 @@ public class Elderly extends User {
 
     public void deleteAssistant(){
         this.assistant = null;
+    }
+    public void deleteAccessCode(){
+        this.accessCode = null;
     }
 }

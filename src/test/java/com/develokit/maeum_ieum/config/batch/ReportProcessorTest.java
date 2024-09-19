@@ -4,7 +4,8 @@ import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.ex.CustomApiException;
-import com.develokit.maeum_ieum.service.ReportService;
+import com.develokit.maeum_ieum.service.report.ReportProcessor;
+import com.develokit.maeum_ieum.service.report.ReportService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,21 +44,19 @@ class ReportProcessorTest {
         when(report2.getElderly()).thenReturn(elderly2);
 
         // when
-        ReportProcessor.ReportProcessResult result = reportProcessor.process(report);
-        ReportProcessor.ReportProcessResult result2 = reportProcessor.process(report2);
+        Report result = reportProcessor.process(report);
+        Report result2 = reportProcessor.process(report2);
 
         // then
         verify(report, times(1)).updateReportStatus(ReportStatus.PROCESSING);
         verify(reportService, times(1)).generateReportContent(report);
         verify(report, times(1)).updateReportStatus(ReportStatus.COMPLETED);
-        assertNotNull(result.getCompletedReport());
-        assertNotNull(result.getNextReport());
+        assertNotNull(result);
 
         verify(report2, times(1)).updateReportStatus(ReportStatus.PROCESSING);
         verify(reportService, times(1)).generateReportContent(report2);
         verify(report2, times(1)).updateReportStatus(ReportStatus.COMPLETED);
-        assertNotNull(result2.getCompletedReport());
-        assertNotNull(result2.getNextReport());
+        assertNotNull(result2);
     }
 
     @Test
