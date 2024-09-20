@@ -9,6 +9,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -38,25 +41,29 @@ public class ReportJobConfig {
     public Job reportGenerationJob(@Qualifier("weeklyReportGenerationStep") Step weeklyReportGenerationStep,
                                    @Qualifier("monthlyReportGenerationStep") Step monthlyReportGenerationStep) {
         return new JobBuilder("reportGenerationJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
                 .start(weeklyReportGenerationStep)
                 .next(monthlyReportGenerationStep)
                 .build();
     }
 
     //[월간 보고서] : 보고서 페이징 크기 100 TODO 확인 필요
+    //TODO MYSQL에서는 formatdatetime 함수 변경해야 함
     @Bean
     @StepScope
     @Qualifier("monthlyReportReader")
     public JpaPagingItemReader<Report> monthlyReportReader(@Value("#{jobParameters['date']}") String dateString) {
-        LocalDateTime date = LocalDateTime.parse(dateString);
+        LocalDate today = LocalDate.parse(dateString);
+        LocalDate oneMonthAgo = today.minusMonths(1);
+
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("monthlyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.startDate <= :date")
+                .queryString("select r from Report r where r.reportType = :reportType and r.reportStatus = :reportStatus and formatdatetime(r.startDate, 'yyyy-MM-dd') = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.MONTHLY,
                         "reportStatus", ReportStatus.PENDING,
-                        "date", date.minusMonths(1)
+                        "targetDate", oneMonthAgo
                 ))
                 .pageSize(100)
                 .build();
@@ -67,15 +74,17 @@ public class ReportJobConfig {
     @StepScope
     @Qualifier("weeklyReportReader")
     public JpaPagingItemReader<Report> weeklyReportReader(@Value("#{jobParameters['date']}") String dateString) {
-        LocalDateTime date = LocalDateTime.parse(dateString);
+        LocalDate today = LocalDate.parse(dateString);
+        LocalDate oneWeekAgo = today.minusWeeks(1);
+
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("weeklyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.startDate <= :date")
+                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND formatdatetime(r.startDate, 'yyyy-MM-dd') = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.WEEKLY,
                         "reportStatus", ReportStatus.PENDING,
-                        "date", date.minusDays(7)
+                        "targetDate", oneWeekAgo
                 ))
                 .pageSize(100)
                 .build();

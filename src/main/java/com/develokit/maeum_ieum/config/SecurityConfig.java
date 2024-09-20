@@ -5,6 +5,7 @@ import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtExceptionFilter;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.util.ApiUtil;
+import com.develokit.maeum_ieum.util.CustomUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -68,22 +69,33 @@ public class SecurityConfig {
                 .headers(header -> header.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
+                .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/caregivers","/check-username/{username}").permitAll()
-                    //.requestMatchers("/caregivers/elderlys").hasAuthority("ROLE_ADMIN")
-                        //.requestMatchers("/caregivers/elderlys", "/caregivers", "/caregivers/elderlys/{elderlyId}/assistants", "/caregivers/mypage", "caregivers/mypage/image", "/caregivers/elderlys/{elderlyId}/image", "/caregivers/elderlys/{elderlyId}/assistants/{assistantId}").authenticated()
+                        .requestMatchers("/caregivers/check-username/**").permitAll()
+                        .requestMatchers("/caregivers").permitAll()  // POST 요청 (회원가입)을 위해
+                        .requestMatchers("/caregivers/**").authenticated()
+                        .requestMatchers("/error").permitAll()  // 오류 페이지 접근 허용
                         .anyRequest().permitAll()
                 )
-                .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) //토큰 쓸 거라서 해제
                 )
                 .exceptionHandling(handler -> {
-                    handler.accessDeniedHandler((request, response, accessDeniedException) -> {
+                    handler
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        ObjectMapper om = new ObjectMapper();
+                        ApiResult<?> responseDto = ApiUtil.error("인증되지 않은 접근입니다", HttpStatus.UNAUTHORIZED.value());
+                        String responseBody = CustomUtil.convertToJson(responseDto);
+
+                        response.setContentType("application/json; charset=utf-8");
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.getWriter().println(responseBody); //만약 response status가 403이면, 그 response를 가로채고 내용을 "error"로 바꿈
+                    })
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
                         ObjectMapper om = new ObjectMapper();
                         ApiResult<?> responseDto = ApiUtil.error("로그인을 진행해주세요", HttpStatus.FORBIDDEN.value());
-                        String responseBody = om.writeValueAsString(responseDto);
+                        String responseBody = CustomUtil.convertToJson(responseDto);
 
                         response.setContentType("application/json; charset=utf-8");
                         response.setStatus(403);

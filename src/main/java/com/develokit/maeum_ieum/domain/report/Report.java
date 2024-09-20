@@ -4,10 +4,7 @@ import com.amazonaws.services.ec2.model.CreateDhcpOptionsRequest;
 import com.develokit.maeum_ieum.domain.base.BaseEntity;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 public class Report extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -66,6 +64,7 @@ public class Report extends BaseEntity {
         this.startDate = localDateTime;
         this.reportDay = dayOfWeek;
     }
+    public void updateReportDay(DayOfWeek reportDay){this.reportDay = reportDay;}
 
     public void updateReportStatus(ReportStatus reportStatus){
         this.reportStatus = reportStatus;
@@ -74,9 +73,18 @@ public class Report extends BaseEntity {
     public void updateEndDate(LocalDateTime localDateTime){
         this.endDate = localDateTime;
     }
+
+    public void setQuantitativeAnalysis(String quantitativeAnalysis) {
+        this.quantitativeAnalysis = quantitativeAnalysis;
+    }
+
+    public void setQualitativeAnalysis(String qualitativeAnalysis) {
+        this.qualitativeAnalysis = qualitativeAnalysis;
+    }
+
     /*
-        보고서 지표들
-         */
+            보고서 지표들
+             */
     public Report(Elderly elderly, LocalDateTime startDate, LocalDateTime endDate, ReportType reportType){
         this.elderly = elderly;
         this.startDate = startDate;

@@ -8,8 +8,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Component
@@ -28,11 +30,14 @@ public class ReportGenerationScheduler {
         LocalDateTime today = LocalDateTime.now();
         reportService.createWeeklyEmptyReports(today);
         reportService.createMonthlyEmptyReports(today);
-        runReportGenerationJob(today);
+
+
+        LocalDate todayLocalDate = today.toLocalDate();
+        runReportGenerationJob(todayLocalDate);
     }
 
 
-    void runReportGenerationJob(LocalDateTime date) throws Exception {
+    void runReportGenerationJob(LocalDate date) throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("date", date.toString())
                 .toJobParameters();

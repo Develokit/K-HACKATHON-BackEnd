@@ -35,7 +35,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r " +
             "WHERE r.elderly = :elderly " +
             "AND r.reportType = :reportType " +

@@ -10,6 +10,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableFeignClients
+//@EnableBatchProcessing
 public class MaeumIeumApplication {
 
 	public static void main(String[] args) {

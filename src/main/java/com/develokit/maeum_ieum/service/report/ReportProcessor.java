@@ -39,6 +39,9 @@ public class ReportProcessor implements ItemProcessor<Report, Report> {
             report.updateReportStatus(ReportStatus.COMPLETED);
             report.updateEndDate(today);
 
+            //보고서 발행 요일 해당 요일로 지정
+            report.updateReportDay(today.getDayOfWeek());
+
             log.info("보고서 결과 반영 성공: {}", report.getElderly().getId());
 
         }catch (Exception e){

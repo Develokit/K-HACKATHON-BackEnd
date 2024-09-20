@@ -12,6 +12,7 @@ import com.develokit.maeum_ieum.domain.user.caregiver.CareGiverRepository;
 import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
+import com.develokit.maeum_ieum.dto.assistant.RespDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import jakarta.servlet.http.HttpServlet;
@@ -205,7 +206,7 @@ public class ElderlyService {
 
         //해당 요양사가 관리하는 노인 사용자가 맞는지 검증
         if(!caregiverPS.getElderlyList().contains(elderlyPS))
-            throw new CustomApiException("해당 사용자의 관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+            throw new CustomApiException("관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
 
 
         //노인 기본 정보 수정
@@ -306,8 +307,30 @@ public class ElderlyService {
         return new ElderlyReportDayModifyRespDto(elderlyPS);
     }
 
+    //노인 사용자 삭제
+    @Transactional
+    public ElderlyDeleteRespDto deleteElderly(Long elderlyId, String username){
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //s3에 있는 노인 프로필 사진 삭제
+
+        //노인 어시스턴트 삭제
+
+        //요양사와의 연결 끊기
+
+        return new ElderlyDeleteRespDto();
+    }
 
 
+    @NoArgsConstructor
+    @Getter
+    public static class ElderlyDeleteRespDto{
+        private String elderlyName;
+        private boolean deleted;
+    }
 
 
 

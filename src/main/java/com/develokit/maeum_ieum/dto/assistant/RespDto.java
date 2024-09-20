@@ -3,6 +3,8 @@ package com.develokit.maeum_ieum.dto.assistant;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -91,5 +93,38 @@ public class RespDto {
             this.assistantId = elderly.getAssistant().getId();
             this.elderlyId = elderly.getId();
         }
+    }
+
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "AI 어시스턴트 조회 데이터 반환 DTO")
+    public static class AssistantInfoRespDto{
+
+        public AssistantInfoRespDto(Assistant assistant) {
+            this.name = assistant.getName();
+            this.mandatoryRule = assistant.getMandatoryRule();
+            this.conversationTopic = assistant.getConversationTopic();
+            this.responseType = assistant.getResponseType();
+            this.personality = assistant.getPersonality();
+            this.forbiddenTopic = assistant.getForbiddenTopic();
+        }
+
+        @Schema(description = "어시스턴트 이름")
+        private String name;
+        @Schema(description = "어시스턴트 필수 규칙")
+        private String mandatoryRule;
+
+        @Schema(description = "AI 규칙(선택): 대화 주제")
+        private String conversationTopic; //대화 주제 -> description
+
+        @Schema(description = "AI 규칙(선택): 응답 형식")
+        private String responseType; //응답 형식
+
+        @Schema(description = "AI 규칙(선택): 성격")
+        private String personality; //성격
+
+        @Schema(description = "AI 규칙(선택): 금기 주제")
+        private String forbiddenTopic; //금기 주제
+
     }
 }

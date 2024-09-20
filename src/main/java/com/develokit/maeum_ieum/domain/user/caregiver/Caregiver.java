@@ -20,10 +20,11 @@ import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.service.CaregiverService.*;
 
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @AllArgsConstructor
 @ToString
+@NoArgsConstructor
 public class Caregiver extends User {
 
     @Id

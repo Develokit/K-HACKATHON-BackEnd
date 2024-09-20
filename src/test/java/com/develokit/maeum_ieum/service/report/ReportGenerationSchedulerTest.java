@@ -3,12 +3,18 @@ import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
+import com.develokit.maeum_ieum.domain.user.caregiver.Caregiver;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +26,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,11 +53,32 @@ class ReportGenerationSchedulerTest {
     private EntityManager em;
     private LocalDateTime today;
 
+    @Autowired
+    private JobRepository jobRepository;
+
+
     @BeforeEach
+    @Transactional
+    @Rollback
     void setUp(){
         //reportRepository.deleteAll();
         today = LocalDateTime.now();
+//        Report report = reportRepository.findById(2L).orElse(null);
+//        report.setStartDate(today.minusWeeks(1));
+
+        Elderly elderlyC = em.createQuery("select e from Elderly e where e.id = :id", Elderly.class)
+                .setParameter("id", 2L)
+                .getSingleResult();
+
+        Report oldReport = Report.builder()
+                .elderly(elderlyC)
+                .reportType(ReportType.MONTHLY)
+                .reportStatus(ReportStatus.PENDING)
+                .startDate(today.minusMonths(1))
+                .build();
+        reportRepository.save(oldReport);
     }
+
     @Test
     @Rollback
     @Transactional
@@ -76,18 +106,7 @@ class ReportGenerationSchedulerTest {
 
         System.out.println("레포트 서비스 쿼리 실행!");
         reportService.createWeeklyEmptyReports(today); //유저 B에 대해서 빈 보고서를 생성해야 함
-//        LocalDateTime oneWeekAgo = today.minusWeeks(1);
-//
-//        boolean elderlyA조건에맞냐 = reportRepository.existsByElderlyAndReportTypeAndReportStatusAndStartDateInLastWeek(
-//                elderlyA, ReportType.WEEKLY, ReportStatus.PENDING, oneWeekAgo, today);
-//
-//        boolean elderlyB조건에맞냐 = reportRepository.existsByElderlyAndReportTypeAndReportStatusAndStartDateInLastWeek(
-//                elderlyB, ReportType.WEEKLY, ReportStatus.PENDING, oneWeekAgo, today);
-//
-//        System.out.println("elderlyA조건에맞냐 = " + elderlyA조건에맞냐);
-//        System.out.println("elderlyB조건에맞냐 = " + elderlyB조건에맞냐);
 
-//
         List<Report> reportsA = reportRepository.findByElderly(elderlyA);
         List<Report> reportsB = reportRepository.findByElderly(elderlyB);
 
@@ -99,6 +118,44 @@ class ReportGenerationSchedulerTest {
         assertEquals(today.minusDays(1), reportsA.get(0).getStartDate());
         assertEquals(today, reportsB.get(0).getStartDate());
     }
+    @Test
+    @Transactional
+    @Rollback(value = false)
+    void testCreateMonthlyEmptyReports() {
+        // 시나리오: 모든 노인에 대해 월간 보고서 생성
+        reportService.createMonthlyEmptyReports(today);
+        List<Elderly> elderlyList = elderlyRepository.findAll();
 
+
+        List<Report> reports = reportRepository.findAll();
+        assertEquals(elderlyList.size(), reports.size());
+        assertTrue(reports.stream().allMatch(r -> r.getReportType() == ReportType.MONTHLY));
+        assertTrue(reports.stream().allMatch(r -> r.getReportStatus() == ReportStatus.PENDING));
+    }
+
+    @Test
+    //@Transactional
+    @Rollback
+    void testFullReportGenerationJob() throws Exception {
+        // 시나리오 3: 유저 C는 일주일 전에 생성된 PENDING 상태의 보고서가 있음 -> 따라서 유저 C는 보고서 분석 작업이 진행되어야 함
+
+        LocalDate todayLocalDate = today.toLocalDate();
+        System.out.println("todayLocalDate = " + todayLocalDate);
+
+        // 배치 작업 실행
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("date", todayLocalDate.toString())
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+        System.out.println("jobExecution.getExitStatus().getExitCode() = " + jobExecution.getExitStatus().getExitCode());
+
+        assertEquals("COMPLETED", jobExecution.getExitStatus().getExitCode());
+
+        // 결과 확인
+        Report processedReport = reportRepository.findById(2L).orElse(null);
+        assertNotNull(processedReport);
+        assertEquals(ReportStatus.COMPLETED, processedReport.getReportStatus());
+    }
 
 }

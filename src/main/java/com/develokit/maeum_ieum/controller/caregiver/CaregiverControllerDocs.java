@@ -5,6 +5,7 @@ import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
 import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
+import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.api.ApiResult;
@@ -230,5 +231,16 @@ public interface CaregiverControllerDocs {
     ResponseEntity<?> modifyElderlyReportDay(@PathVariable(name = "elderlyId")Long elderlyId,
                                              @RequestBody@Valid ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto,
                                              @AuthenticationPrincipal LoginUser loginUser );
+
+
+    @Operation(summary = "AI 어시스턴트 정보 조회 ", description = "AI 어시스턴트 정보 페이지 진입 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = AssistantInfoRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = AssistantInfoRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Authorization 헤더 재확인 바람", content = @Content(schema = @Schema(implementation = AssistantInfoRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> getAssistantInfo(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                 @PathVariable(name = "assistantId")Long assistantId,
+                                                 @AuthenticationPrincipal LoginUser loginUser);
 
 }

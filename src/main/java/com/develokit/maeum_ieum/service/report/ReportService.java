@@ -6,6 +6,8 @@ import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +26,31 @@ public class ReportService {
     private final ElderlyRepository elderlyRepository;
     private final Logger log = LoggerFactory.getLogger(ReportService.class);
 
+    //노인 사용자의 발행된 전체 주간 보고서 내역 보내기
+    //노인 1의 '2024년 07월 07일 (수)', '2024년 06월 31일 (수)', .... 이런 식으로
+    //페이징을 어떻게 할 것인가.......
+    public ReportListRespDto getElderlyReportList(Long elderlyId){
+
+
+        return new ReportListRespDto();
+    }
+
+    @NoArgsConstructor
+    @Getter
+    public static class ReportListRespDto{
+        private Long reportId; //보고서 아이디
+        private String publishedDate; //발행 날짜
+        private String reportDay; //DayOfWeek 타입의 reportDay를 한글로 변환시킬 것
+    }
+
+
     //지표에 따른 보고서 생성하기
+    @Transactional
     public void generateReportContent(Report report){
 
+        //어쩌구저쩌구
+        report.setQualitativeAnalysis("정성적 보고서 분석 결과");
+        report.setQuantitativeAnalysis("정량적 보고서 분석 결과");
 
     }
 
