@@ -34,6 +34,7 @@ import static com.develokit.maeum_ieum.dto.caregiver.RespDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.*;
+import static com.develokit.maeum_ieum.dto.report.RespDto.*;
 
 @Tag(name = "요양사 API", description = "요양사가 호출하는 API 목록")
 
@@ -243,4 +244,24 @@ public interface CaregiverControllerDocs {
                                                  @PathVariable(name = "assistantId")Long assistantId,
                                                  @AuthenticationPrincipal LoginUser loginUser);
 
+    @Operation(summary = "노인 주간 보고서 리스트 조회 ", description = "노인 기본 정보 페이지에서 생성된 주간 보고서 조회 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = WeeklyReportListRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = WeeklyReportListRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> getElderlyWeeklyReports(@PathVariable(name = "elderlyId")Long elderlyId,
+                                               @RequestParam(name = "cursor",required = false) @Parameter(description = "다음 데이터 조회를 위한 커서 값. 첫 요청 시 null. 다음 데이터 요청 시 이전 응답의 nextCursor를 사용") Long cursor,
+                                               @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
+                                               @AuthenticationPrincipal LoginUser loginUser);
+
+
+    @Operation(summary = "노인 월간 보고서 리스트 조회 ", description = "노인 기본 정보 페이지에서 생성된 월간 보고서 조회 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = MonthlyReportListRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = MonthlyReportListRespDto.class), mediaType = "application/json")),
+    })
+    public ResponseEntity<?> getElderlyMonthlyReports(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                      @RequestParam(name = "cursor",required = false) @Parameter(description = "다음 데이터 조회를 위한 커서 값. 첫 요청 시 null 또는 비워둠. 다음 데이터 요청 시 이전 응답의 nextCursor를 사용") Long cursor,
+                                                      @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
+                                                      @AuthenticationPrincipal LoginUser loginUser);
 }

@@ -38,11 +38,11 @@ public class Caregiver extends User {
     @Column(nullable = false, length = 60)
     private String password;
 
-    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     private List<Assistant> assistantList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     private List<Elderly> elderlyList = new ArrayList<>();
 
@@ -64,6 +64,14 @@ public class Caregiver extends User {
 
     public void updateImg(String imgUrl){
         super.updateImg(imgUrl);
+    }
+
+    public void removeAssistant(Assistant assistant){
+        this.assistantList.remove(assistant);
+    }
+
+    public void removeElderly(Elderly elderly){
+        this.elderlyList.remove(elderly);
     }
 
 

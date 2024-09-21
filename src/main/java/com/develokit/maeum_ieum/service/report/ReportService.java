@@ -6,16 +6,20 @@ import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.develokit.maeum_ieum.ex.CustomApiException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.develokit.maeum_ieum.dto.report.RespDto.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,20 +32,56 @@ public class ReportService {
 
     //노인 사용자의 발행된 전체 주간 보고서 내역 보내기
     //노인 1의 '2024년 07월 07일 (수)', '2024년 06월 31일 (수)', .... 이런 식으로
-    //페이징을 어떻게 할 것인가.......
-    public ReportListRespDto getElderlyReportList(Long elderlyId){
+    public WeeklyReportListRespDto getElderlyWeeklyReportList(Long elderlyId, Long cursor, int limit){
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //초기 cursor가 설정 안되면 max_value로 설정
+        if(cursor==null || cursor.equals(0L)) cursor = Long.MAX_VALUE;
+
+        //limit+1만큼 조회해야 함!!!!
+        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("id").descending());
+
+        List<Report> reportList = reportRepository.findWeeklyReportByElderly(elderlyPS,ReportStatus.COMPLETED, ReportType.WEEKLY, cursor, pageRequest);
 
 
-        return new ReportListRespDto();
+        //다음 페이지 커서 설정
+        Long nextCursor = null;
+        if(reportList.size() > limit){
+            nextCursor = reportList.get(limit).getId(); //다음 커서 설정
+            reportList = reportList.subList(0, limit); //limit만큼 잘라서 반환
+        }
+
+        return new WeeklyReportListRespDto(reportList, nextCursor);
     }
 
-    @NoArgsConstructor
-    @Getter
-    public static class ReportListRespDto{
-        private Long reportId; //보고서 아이디
-        private String publishedDate; //발행 날짜
-        private String reportDay; //DayOfWeek 타입의 reportDay를 한글로 변환시킬 것
+    //노인 사용자의 발행된 전체 월간 보고서 내역 보내기
+    public MonthlyReportListRespDto getElderlyMonthlyReportList(Long elderlyId, Long cursor, int limit){
+
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //초기 cursor가 설정 안되면 max_value로 설정
+        if(cursor==null || cursor.equals(0L)) cursor = Long.MAX_VALUE;
+
+        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("id").descending());
+
+        List<Report> reportList = reportRepository.findMonthlyReportByElderly(elderlyPS, ReportStatus.COMPLETED, ReportType.MONTHLY, cursor, pageRequest);
+
+        Long nextCursor = null;
+        if(reportList.size()>limit){
+            nextCursor = reportList.get(limit).getId();
+            reportList = reportList.subList(0, limit);
+        }
+
+        return new MonthlyReportListRespDto(reportList, nextCursor);
+
     }
+
+
 
 
     //지표에 따른 보고서 생성하기

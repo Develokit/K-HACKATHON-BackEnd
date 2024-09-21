@@ -3,8 +3,13 @@ package com.develokit.maeum_ieum.service;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.develokit.maeum_ieum.ex.CustomApiException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.CachingUserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +28,8 @@ public class S3Service {
 
     @Value("${cloud.aws.region.static}")
     private String region;
+
+    private final Logger log = LoggerFactory.getLogger(S3Service.class);
 
 
     public String uploadImage(MultipartFile file){
@@ -47,13 +54,15 @@ public class S3Service {
             objectKey = path.substring(1);
         } catch (Exception e) {
             e.printStackTrace();
+            log.error("이미지 삭제 시도 실패: 이미지 URL 파싱 과정에서 오류 발생");
         }
         try {
             S3Client.deleteObject(bucket, objectKey);
-            System.out.println("버킷에서 이미지 삭제 완료");
+            log.debug("디버그 : 버킷에서 이미지 삭제 완료");
         } catch (AmazonServiceException e) {
-            System.err.println(e.getErrorMessage());
-            System.exit(1);
+            log.error("버킷에서 이미지 삭제 중 오류 발생");
+            throw new CustomApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+            //System.exit(1);
         }
     }
 }

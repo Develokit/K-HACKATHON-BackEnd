@@ -27,19 +27,28 @@ public class ReportGenerationScheduler {
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행 (보고서 분석 결과 기록)
     public void runReportGenerationJob() throws Exception {
+        log.info("스케줄러 시작");
+
         LocalDateTime today = LocalDateTime.now();
+        log.info("현재 날짜: {}", today);
+
+
         reportService.createWeeklyEmptyReports(today);
         reportService.createMonthlyEmptyReports(today);
 
 
         LocalDate todayLocalDate = today.toLocalDate();
+        log.info("배치: 스케줄러 today LocalDate로 전환" + todayLocalDate);
         runReportGenerationJob(todayLocalDate);
     }
 
 
     void runReportGenerationJob(LocalDate date) throws Exception {
+        log.info("배치: Running report generation job for date: {}", date);
+
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("date", date.toString())
+                .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
         JobExecution jobExecution = jobLauncher.run(reportGenerationJob, jobParameters);
 

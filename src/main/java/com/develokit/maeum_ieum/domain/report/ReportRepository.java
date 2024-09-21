@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.domain.report;
 
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,29 @@ import java.util.Optional;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    @Query("select r from Report r " +
+            "where r.elderly = :elderly " +
+            "and r.reportStatus = :reportStatus " +
+            "and r.reportType = :reportType " +
+            "and r.id <= :cursor " +
+            "order by r.id desc")
+    List<Report> findWeeklyReportByElderly(@Param("elderly") Elderly elderly,
+                                           @Param("reportStatus")ReportStatus reportStatus,
+                                           @Param("reportType")ReportType reportType,
+                                           @Param("cursor")Long cursor, PageRequest pageRequest);
+
+
+    @Query("select r from Report r " +
+            "where r.elderly = :elderly " +
+            "and r.reportStatus = :reportStatus " +
+            "and r.reportType = :reportType " +
+            "and r.id <= :cursor " +
+            "order by r.id desc")
+    List<Report> findMonthlyReportByElderly(@Param("elderly") Elderly elderly,
+                                            @Param("reportStatus")ReportStatus reportStatus,
+                                            @Param("reportType")ReportType reportType,
+                                            @Param("cursor")Long cursor, PageRequest pageRequest);
 
     @Query("select count(r) from Report r where r.elderly =: elderly and r.startDate = : startDate")
     int findByStartDate(@Param(value = "elderly")Elderly elderly, @Param(value = "startDate")LocalDateTime startDate);

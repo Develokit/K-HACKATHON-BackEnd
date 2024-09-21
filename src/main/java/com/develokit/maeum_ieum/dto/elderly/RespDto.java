@@ -59,7 +59,7 @@ public class RespDto {
             this.emergencyContact = elderly.getEmergencyContactInfo().getEmergencyContact();
             this.relationship = elderly.getEmergencyContactInfo().getRelationship();
             this.assistantName = elderly.getAssistant()!=null?elderly.getAssistant().getName():null;
-            this.reportDay = elderly.getReportDay().toString();
+            this.reportDay = elderly.getReportDay()==null?null:elderly.getReportDay().toString();
             this.assistantId = elderly.getAssistant()==null?null:elderly.getAssistant().getId();
             this.imgUrl = elderly.getImgUrl();
         }
@@ -147,7 +147,7 @@ public class RespDto {
             this.emergencyContact = elderly.getEmergencyContactInfo().getEmergencyContact();
             this.relationship = elderly.getEmergencyContactInfo().getRelationship();
             this.assistantName = elderly.getAssistant()==null?null:elderly.getAssistant().getName();
-            this.reportDay = elderly.getReportDay().toString();
+            this.reportDay = elderly.getReportDay()==null?null:elderly.getReportDay().toString();
         }
 
 

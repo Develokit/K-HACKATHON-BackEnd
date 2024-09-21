@@ -35,6 +35,32 @@ public class CustomUtil {
         return split[0]+"년 "+split[1]+"월 "+split[2]+"일";
     }
 
+    public static String LocalDateTimeToWeeklyReportPublishedDate(LocalDateTime localDateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = localDateTime.format(formatter);
+        String[] split = formattedDate.split("-");
+        return split[0]+"."+split[1]+"."+split[2]+".";
+    }
+
+    public static String LocalDateTimeToMonthlyReportPublishedDate(LocalDateTime localDateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        String formattedDate = localDateTime.format(formatter);
+        String[] split = formattedDate.split("-");
+        return split[0]+"."+split[1];
+    }
+
+    public static String DayOfWeekToString(DayOfWeek dayOfWeek){
+        return switch (dayOfWeek){
+            case MONDAY -> "(월)";
+            case TUESDAY -> "(화)";
+            case WEDNESDAY -> "(수)";
+            case THURSDAY -> "(목)";
+            case FRIDAY -> "(금)";
+            case SATURDAY -> "(토)";
+            case SUNDAY -> "(일)";
+        };
+    }
+
     public static LocalDate StringToLocalDate(String birthDate){
         return LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
@@ -55,21 +81,6 @@ public class CustomUtil {
         } else {
             return null;
         }
-    }
-    public static LocalDateTime[] getWeekStartAndEnd(LocalDateTime dateTime){
-        LocalDate date = dateTime.toLocalDate();
-        LocalDate startOfWeek = date.with(DayOfWeek.MONDAY);
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
-        return new LocalDateTime[]{
-                LocalDateTime.of(startOfWeek, LocalDateTime.MIN.toLocalTime()),
-                LocalDateTime.of(endOfWeek, LocalDateTime.MAX.toLocalTime())
-        };
-    }
-    public static LocalDateTime getMonthEnd(LocalDateTime dateTime){ //해당 달이 끝나는 날 반환
-        YearMonth yearMonth = YearMonth.from(dateTime);
-        LocalDate lastDayOfMonth = yearMonth.atEndOfMonth();
-
-        return LocalDateTime.of(lastDayOfMonth, LocalTime.MAX);
     }
 
     public static String convertToJson(Object object) throws JsonProcessingException {

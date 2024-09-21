@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -71,8 +72,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.POST, "/caregivers").permitAll()
                         .requestMatchers("/caregivers/check-username/**").permitAll()
-                        .requestMatchers("/caregivers").permitAll()  // POST 요청 (회원가입)을 위해
                         .requestMatchers("/caregivers/**").authenticated()
                         .requestMatchers("/error").permitAll()  // 오류 페이지 접근 허용
                         .anyRequest().permitAll()
@@ -90,7 +91,7 @@ public class SecurityConfig {
 
                         response.setContentType("application/json; charset=utf-8");
                         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                        response.getWriter().println(responseBody); //만약 response status가 403이면, 그 response를 가로채고 내용을 "error"로 바꿈
+                        response.getWriter().println(responseBody);
                     })
                     .accessDeniedHandler((request, response, accessDeniedException) -> {
                         ObjectMapper om = new ObjectMapper();

@@ -100,7 +100,10 @@ public class CaregiverService {
         );
 
         //cursor가 null이면 첫 페이지, 아니면 해당 커서 이후의 데이터를 가져옴 -> 최근 생성된 순으로 반환
-        List<Elderly> elderlyList = elderlyRepository.findByCaregiverIdAndIdAfter(caregiverPS.getId(), decodeCursor(cursor), PageRequest.of(0, limit + 1, Sort.by("id").descending()));
+        List<Elderly> elderlyList = elderlyRepository
+                .findByCaregiverIdAndIdAfter(caregiverPS.getId(),
+                        decodeCursor(cursor),
+                        PageRequest.of(0, limit + 1, Sort.by("id").descending()));
 
         String nextCursor = null;
         if(elderlyList.size()>limit){

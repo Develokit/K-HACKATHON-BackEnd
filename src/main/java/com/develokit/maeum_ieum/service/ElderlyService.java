@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
+import java.net.MalformedURLException;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -307,27 +308,51 @@ public class ElderlyService {
         return new ElderlyReportDayModifyRespDto(elderlyPS);
     }
 
-    //노인 사용자 삭제
+    //TODO 노인 사용자 삭제 -> 보고서도 삭제 해야함...? (보고서 삭제 할 것 일단,..)
     @Transactional
-    public ElderlyDeleteRespDto deleteElderly(Long elderlyId, String username){
+    public ElderlyDeleteRespDto deleteElderly(Long elderlyId, String username) throws MalformedURLException {
+
+        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
 
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
+        if(elderlyPS.getCaregiver() != caregiverPS)
+            throw new CustomApiException("관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+
         //s3에 있는 노인 프로필 사진 삭제
+        if(!elderlyPS.getImgUrl().isEmpty())
+            s3Service.deleteImage(elderlyPS.getImgUrl());
 
-        //노인 어시스턴트 삭제
 
-        //요양사와의 연결 끊기
+        //TODO 노인 보고서 삭제하기
 
-        return new ElderlyDeleteRespDto();
+        //노인 어시스턴트 삭제 & 요양사와의 연결 끊기
+        if(elderlyPS.getAssistant()!=null){
+            Assistant assistantPS = elderlyPS.getAssistant();
+            caregiverPS.removeAssistant(assistantPS);
+            assistantRepository.delete(assistantPS);
+        }
+
+        //노인 삭제
+        caregiverPS.removeElderly(elderlyPS);
+        elderlyRepository.delete(elderlyPS);
+
+        return new ElderlyDeleteRespDto(elderlyPS);
     }
 
 
     @NoArgsConstructor
     @Getter
     public static class ElderlyDeleteRespDto{
+        public ElderlyDeleteRespDto(Elderly elderly) {
+            this.elderlyName = elderly.getName();
+            this.deleted = true;
+        }
+
         private String elderlyName;
         private boolean deleted;
     }
