@@ -15,7 +15,10 @@ public interface ElderlyRepository extends JpaRepository<Elderly, Long> {
 
     List<Elderly> findByReportDay(DayOfWeek dayOfWeek);
 
-    List<Elderly> findByCaregiverIdAndIdAfter(Long caregiverId, Long decodeCursor, PageRequest pageRequest);
+    //List<Elderly> findByCaregiverIdAndIdAfter(Long caregiverId, Long decodeCursor, PageRequest pageRequest);
+
+    List<Elderly> findByCaregiverIdAndIdLessThanEqual(Long caregiverId, Long id, PageRequest pageRequest);
+
 
     Optional<Elderly> findByAccessCode(String accessCode);
 }
