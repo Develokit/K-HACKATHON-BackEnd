@@ -114,7 +114,7 @@ class CaregiverServiceTest {
         );
 
         when(careGiverRepository.findByUsername(username)).thenReturn(Optional.of(caregiver));
-        when(elderlyRepository.findByCaregiverIdAndIdAfter(eq(1L), eq(0L), any(PageRequest.class)))
+        when(elderlyRepository.findByCaregiverIdAndIdLessThanEqual(eq(1L), eq(0L), any(PageRequest.class)))
                 .thenReturn(elderlyList);
 
         // When

@@ -2,6 +2,7 @@ package com.develokit.maeum_ieum.controller.caregiver;
 
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.dto.assistant.ReqDto.CreateAssistantReqDto;
+import com.develokit.maeum_ieum.dto.assistant.RespDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
@@ -9,6 +10,7 @@ import com.develokit.maeum_ieum.service.ElderlyService;
 import com.develokit.maeum_ieum.service.EmergencyRequestService;
 import com.develokit.maeum_ieum.service.report.ReportService;
 import com.develokit.maeum_ieum.util.ApiUtil;
+import com.develokit.maeum_ieum.util.api.ApiResult;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +19,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
 
@@ -142,18 +149,87 @@ public class CaregiverController implements CaregiverControllerDocs {
     }
 
     //노인 필수 규칙 자동 완성
-
     @PostMapping("/elderlys/{elderlyId}/assistants/rules/autocomplete")
-    public Mono<ResponseEntity<?>> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
-                                                           @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
-                                                           BindingResult bindingResult,
-                                                           @AuthenticationPrincipal LoginUser loginUser){
-        return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
-                .map(assistantMandatoryRuleRespDto -> ResponseEntity
-                        .status(HttpStatus.CREATED)
-                        .body(ApiUtil.success(assistantMandatoryRuleRespDto))
-                );
+    public ResponseEntity<?> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                                                                  @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
+                                                                                                  BindingResult bindingResult,
+                                                                                                  @AuthenticationPrincipal LoginUser loginUser) {
+
+        return new ResponseEntity<>(ApiUtil.success(caregiverService.createAutoMandatoryRuleWithFeign(assistantMandatoryRuleReqDto)), HttpStatus.CREATED);
     }
+
+
+
+//    @PostMapping("/elderlys/{elderlyId}/assistants/rules/autocomplete")
+//    public Mono<ResponseEntity<ApiResult<AssistantMandatoryRuleRespDto>>> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
+//                                                                                                  @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
+//                                                                                                  BindingResult bindingResult,
+//                                                                                                  @AuthenticationPrincipal LoginUser loginUser){
+//
+//        //다섯 번쨰 시도 코드
+//        return ReactiveSecurityContextHolder.getContext()
+//                .flatMap(securityContext -> {
+//                    log.debug("Security Context: {}", securityContext.getAuthentication());
+//                    return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
+//                            .map(assistantMandatoryRuleRespDto -> {
+//                                log.debug("노인 필수 규칙 자동 생성 완료");
+//                                return ResponseEntity.status(HttpStatus.CREATED)
+//                                        .body(ApiUtil.success(assistantMandatoryRuleRespDto));
+//                            });
+//                })
+//                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(SecurityContextHolder.getContext())));
+
+        //네 번째 시도 코드
+//        SecurityContext context = SecurityContextHolder.getContext();
+//
+//        log.debug("노인 필수 규칙 자동 완성 컨트롤러에서의 인증 정보: {}", context.getAuthentication());
+//
+//        return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
+//                .map(assistantMandatoryRuleRespDto -> {
+//                    log.debug("노인 필수 규칙 자동 생성 완료");
+//                    return ResponseEntity.status(HttpStatus.CREATED)
+//                            .body(ApiUtil.success(assistantMandatoryRuleRespDto));
+//                })
+//                // Ensure the context is set properly for the entire Mono pipeline
+//                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
+
+
+        //세 번째 시도 코드
+//        return ReactiveSecurityContextHolder.getContext()
+//                .flatMap(securityContext -> {
+//                    log.debug("노인 필수 규칙 자동 완성 컨트롤러에서의 인증 정보: {}", loginUser);
+//                    return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto);
+//                })
+//                .map(assistantMandatoryRuleRespDto -> {
+//                    log.debug("노인 필수 규칙 자동 생성 완료");
+//                    return new ResponseEntity<>(ApiUtil.success(assistantMandatoryRuleRespDto), HttpStatus.CREATED);
+//                })
+//                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(
+//                        SecurityContextHolder.getContext().getAuthentication()
+//                ));
+
+
+
+        //두번 째 시도 코드
+//        return Mono.just(context)
+//                .flatMap(securityContext ->
+//                        caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
+//                )
+//                .map(assistantMandatoryRuleRespDto -> {
+//                    log.debug("노인 필수 규칙 자동 생성 완료");
+//                    return new ResponseEntity<>(ApiUtil.success(assistantMandatoryRuleRespDto), HttpStatus.CREATED);
+//                })
+//                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
+
+//처음 코드
+//        return caregiverService.createAutoMandatoryRule(assistantMandatoryRuleReqDto)
+//                .map(assistantMandatoryRuleRespDto -> {
+//                    log.debug("노인 필수 규칙 자동 생성 완료");
+//                    return ResponseEntity
+//                            .status(HttpStatus.CREATED)
+//                            .body(ApiUtil.success(assistantMandatoryRuleRespDto));
+//                });
+//    }
     //알림 내역 조회
 
     @GetMapping("/emergency-alerts")

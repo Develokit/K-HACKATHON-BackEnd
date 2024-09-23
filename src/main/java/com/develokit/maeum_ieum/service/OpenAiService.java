@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.service;
 
 import com.develokit.maeum_ieum.config.openAI.AssistantFeignClient;
+import com.develokit.maeum_ieum.config.openAI.GptFeignClient;
 import com.develokit.maeum_ieum.config.openAI.GptWebClient;
 import com.develokit.maeum_ieum.config.openAI.ThreadFeignClient;
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
@@ -24,6 +25,7 @@ import static com.develokit.maeum_ieum.dto.openAi.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.gpt.ReqDto.CreateGptMessageReqDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.gpt.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.thread.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.thread.RespDto.*;
 
@@ -36,6 +38,7 @@ public class OpenAiService {
     private final AssistantFeignClient assistantFeignClient;
     private final ThreadFeignClient threadFeignClient;
     private final GptWebClient gptWebClient;
+    private final GptFeignClient gptFeignClient;
     private final String MODEL = "gpt-4o";
     private final int MAX_TOKENS = 400;
 
@@ -113,7 +116,7 @@ public class OpenAiService {
             throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    //TODO gpt한테 필수 규칙 더 상세하게 생성해달라는 요청
+    //TODO gpt한테 필수 규칙 더 상세하게 생성해달라는 요청 -> WebFlux버전
     public Mono<AssistantMandatoryRuleRespDto> createGptMessage(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto){
         try{
            return gptWebClient.createGptMessage(new CreateGptMessageReqDto(
@@ -124,10 +127,34 @@ public class OpenAiService {
             )).map(AssistantMandatoryRuleRespDto::new);
 
         }catch (Exception e){
+            log.error("GPT 자동 생성 필수 규칙 반환 중 오류 발생: "+e.getMessage());
             throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
 
         }
     }
+
+    //TODO gpt한테 필수 규칙 더 상세하게 생성해달라는 요청 -> 서블릿 버전
+    public AssistantMandatoryRuleRespDto createGptMessageWithFeign(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto){
+        log.debug("GPT 자동 생성 필수 규칙 요청 전송: {}", assistantMandatoryRuleReqDto.getContent());
+        try{
+            CreateGptMessageRespDto gptMessage = gptFeignClient.createGptMessage(new CreateGptMessageReqDto(
+                    MODEL,
+                    new MessageDto(SYSTEM_PROMPT, "system"),
+                    new MessageDto(assistantMandatoryRuleReqDto.getContent() + USER_PROMPT_SUFFIX, "user"),
+                    MAX_TOKENS)
+            );
+            return new AssistantMandatoryRuleRespDto(gptMessage);
+
+        }catch (FeignException fe){
+            log.error("OpenAI API 호출 과정에서 에러 발생. Status: {}, Body: {}", fe.status(), fe.contentUTF8(), fe);
+            throw new CustomApiException("OPENAI_SERVER_ERROR", fe.status(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e){
+            log.error("GPT 자동 생성 필수 규칙 반환 중 오류 발생: "+e.getMessage());
+            throw new CustomApiException("OPENAI_SERVER_ERROR", 500, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 
 

@@ -154,15 +154,34 @@ public class ElderlyService {
 
         //스레드가 있는지 확인 -> 없으면 스레드 생성
         if(!assistantPS.hasThread()){ //스레드 없음
+            log.debug("디버그 : 해당 AI 어시스턴트는 스레드 없으므로 스레드 생성");
             ThreadRespDto threadRespDto = openAiService.createThread();
             assistantPS.attachThread(threadRespDto.getId());
         }
         else{ //스레드가 있다면
+            log.debug("디버그 : 해당 AI 어시스턴트는 스레드가 존재함");
             LocalDateTime lastChatTime = elderlyPS.getLastChatTime();
-            //마지막 접근일로부터 30일이 지났는지 검증 -> 지났다면 새로운 스레드 생성
-            if(ChronoUnit.DAYS.between(lastChatTime, LocalDateTime.now()) >= 30){
-                ThreadRespDto threadRespDto = openAiService.createThread();
-                assistantPS.attachThread(threadRespDto.getId());
+            //이전 응답 기록이 없다면
+            if (lastChatTime == null) {
+                //스레드 생성일로부터 30일이 지났는지 검증 -> 지났다면 새로운 스레드 생성
+                LocalDateTime threadCreatedDate = assistantPS.getThreadCreatedDate();
+
+                //스레드 생성일로부터 30일이 지남
+                if(ChronoUnit.DAYS.between(threadCreatedDate, LocalDateTime.now()) >= 30){
+                    log.debug("디버그 : 해당 AI 어시스턴트는 스레드 생성일로부터 30일이 지났고, 이전 대화 기록이 없으므로 새 스레드 생성");
+                    ThreadRespDto threadRespDto = openAiService.createThread();
+                    assistantPS.attachThread(threadRespDto.getId());
+                }
+                //스레드 생성일로부터 30일이 지나지 않으면 그대로 반환
+
+            } else { //이전 응답 기록이 있다면
+                //마지막 대화일로부터 30일이 지났는지 확인
+                if(ChronoUnit.DAYS.between(lastChatTime, LocalDateTime.now()) >= 30){
+                    log.debug("디버그 : 해당 AI 어시스턴트는 마지막 대화로부터 30일이 지났으므로 새 스레드 생성");
+                    ThreadRespDto threadRespDto = openAiService.createThread();
+                    assistantPS.attachThread(threadRespDto.getId());
+                }
+                //마지막 대화일로부터 30일이 지나지 않았으므로 그대로 반환
             }
         }
 

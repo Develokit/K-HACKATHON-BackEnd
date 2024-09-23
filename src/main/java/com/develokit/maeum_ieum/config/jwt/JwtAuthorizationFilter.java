@@ -1,12 +1,11 @@
 package com.develokit.maeum_ieum.config.jwt;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.SignatureGenerationException;
-import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.exceptions.*;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.develokit.maeum_ieum.util.ApiUtil;
+import com.develokit.maeum_ieum.util.CustomUtil;
+import com.develokit.maeum_ieum.util.api.ApiResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.util.concurrent.BlockingOperationException;
 import jakarta.servlet.FilterChain;
@@ -52,76 +51,43 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 return;
             }
 
-            String token = header.replace(JwtVo.TOKEN_PREFIX, "");
-            logger.debug("디버그 : 토큰이 존재함");
+            try {
+                String token = header.replace(JwtVo.TOKEN_PREFIX, "");
+                logger.debug("디버그 : JWT 토큰 확인됨. URI: {}", request.getRequestURI());
 
-            // 토큰 검증
-            LoginUser loginUser = JwtProvider.verify(token);
+                // 토큰 검증
+                LoginUser loginUser = JwtProvider.verify(token);
 
-            loginUser.getAuthorities().forEach(grantedAuthority ->
-                    logger.debug("grantedAuthority.getAuthority().toString() = " + grantedAuthority.getAuthority().toString()));
+                loginUser.getAuthorities().forEach(grantedAuthority ->
+                        logger.debug("디버그 : 부여된 권한: {}", grantedAuthority.getAuthority()));
 
-            // 임시 세션 생성
-            Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
+                // 임시 세션 생성
+                Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
 
-            logger.debug("임시 세션 생성");
+                logger.debug("인증 정보 설정 완료. 사용자: {}", loginUser.getUsername());
 
-            // 로그인
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                // 로그인
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            chain.doFilter(request, response);
+                chain.doFilter(request, response);
+            } catch (TokenExpiredException e) {
+                setErrorResponse(HttpStatus.UNAUTHORIZED, response,  "토큰이 만료되었습니다");
+            } catch (JWTDecodeException e) {
+                setErrorResponse(HttpStatus.UNAUTHORIZED, response, "유효하지 않은 JWT 형식입니다");
+            } catch (SignatureVerificationException e) {
+                setErrorResponse(HttpStatus.UNAUTHORIZED, response, "유효하지 않은 토큰 서명입니다");
+            } catch (JWTVerificationException e) {
+                setErrorResponse(HttpStatus.UNAUTHORIZED, response, "유효하지 않은 토큰입니다");
+            } catch (Exception e) {
+                logger.error("예기치 않은 오류 발생: {}", e.getMessage(), e);
+                setErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, response, "서버 내부 오류가 발생했습니다");
+            }
+    }
+    private void setErrorResponse(HttpStatus status, HttpServletResponse response, String message) throws IOException {
+        ApiResult<Object> jwtExceptionResponse = ApiUtil.error(message, status.value());
+        response.setStatus(status.value());
+        response.setContentType("application/json; charset=UTF-8");
+        response.getWriter().write(CustomUtil.convertToJson(jwtExceptionResponse));
     }
 
-
-    //    //헤더 검증
-    //    private boolean isHeaderVerify(HttpServletRequest request){
-    //        try {
-    //            //HandlerMethod handlerMethod = (HandlerMethod) handlerMapping.getHandler(request).getHandler();
-    //
-    //            HandlerExecutionChain handlerChain = handlerMapping.getHandler(request);
-    //            System.out.println(handlerChain.toString());
-    //            if (handlerChain == null) {
-    //                throw new CustomApiException("요청된 URI에 대한 핸들러가 없습니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND);
-    //            }
-    //            HandlerMethod handlerMethod = (HandlerMethod) handlerChain.getHandler();
-    //            if (handlerMethod.getMethodAnnotation(RequireAuth.class) != null) {
-    //                logger.debug("RequireAuth API 헤더 검증 중");
-    //                String header = request.getHeader(JwtVo.HEADER);
-    //                if (header == null || !header.startsWith(JwtVo.TOKEN_PREFIX)) {
-    //                    throw new CustomApiException("Authorization 헤더 재확인 바람", HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED);
-    //                } else return true; //헤더 검사 통과하면 필터 내에서 토큰 검증
-    //            }
-    //            return false;
-    //        }catch(CustomApiException e){
-    //            throw e;
-    //        } catch (Exception e){
-    //            if (request.getRequestURI().contains("swagger-ui")) //스웨거 접근 허용
-    //                return false;
-    //            logger.error(e.getMessage());
-    //            throw new CustomApiException("헤더 검증 과정에서 에러 발생",HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
-    //        }
-    //    }
-    //
-    //    @Override
-    //    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException{
-    //        if(isHeaderVerify(request)){
-    //            //토큰 있음 -> 임시 세션 생성
-    //            String token = request.getHeader(JwtVo.HEADER).replace(JwtVo.TOKEN_PREFIX, "");//Bearer 제거
-    //            logger.debug("디버그 : 토큰이 존재함");
-    //
-    //            //토큰 검증
-    //            LoginUser loginUser = JwtProvider.verify(token);
-    //
-    //            loginUser.getAuthorities().stream().forEach(grantedAuthority -> System.out.println("grantedAuthority.getAuthority().toString() = " + grantedAuthority.getAuthority().toString()));
-    //            //임시 세션
-    //            Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
-    //
-    //            logger.debug("임시 세션 생성");
-    //
-    //            //로그인
-    //            SecurityContextHolder.getContext().setAuthentication(authentication);
-    //        }
-    //        //다시 체인 타기
-    //        chain.doFilter(request, response);
-    //    }
 }

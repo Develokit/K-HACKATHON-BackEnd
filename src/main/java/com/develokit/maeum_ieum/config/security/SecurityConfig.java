@@ -1,8 +1,10 @@
-package com.develokit.maeum_ieum.config;
+package com.develokit.maeum_ieum.config.security;
 
 import com.develokit.maeum_ieum.config.jwt.JwtAuthenticationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtAuthorizationFilter;
 import com.develokit.maeum_ieum.config.jwt.JwtExceptionFilter;
+import com.develokit.maeum_ieum.config.jwt.JwtProvider;
+import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.domain.user.Role;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import com.develokit.maeum_ieum.util.CustomUtil;
@@ -13,22 +15,34 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.server.WebFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import reactor.core.publisher.Mono;
 
 import java.security.SecureRandom;
 import java.util.Collections;
@@ -36,6 +50,8 @@ import java.util.Collections;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@Order(2)
 public class SecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger((getClass()));
@@ -57,8 +73,8 @@ public class SecurityConfig {
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
             builder.addFilterBefore(jwtExceptionFilter, JwtAuthorizationFilter.class); //토큰 검증 전에 에러 잡기 위한 필터
+            builder.addFilterBefore(new JwtAuthorizationFilter(authenticationManager, handlerMapping), UsernamePasswordAuthenticationFilter.class); //인가 필터
             builder.addFilter(new JwtAuthenticationFilter(authenticationManager)); //jwt 인증 필터
-            builder.addFilter(new JwtAuthorizationFilter(authenticationManager, handlerMapping)); //인가 필터
             super.configure(builder);
         }
     }
@@ -85,6 +101,7 @@ public class SecurityConfig {
                 .exceptionHandling(handler -> {
                     handler
                     .authenticationEntryPoint((request, response, authException) -> {
+                        log.error("인증되지 않은 접근 발생: URI: {}, Request: {}, Response: {}", request.getRequestURI(), request, response);
                         ObjectMapper om = new ObjectMapper();
                         ApiResult<?> responseDto = ApiUtil.error("인증되지 않은 접근입니다", HttpStatus.UNAUTHORIZED.value());
                         String responseBody = CustomUtil.convertToJson(responseDto);

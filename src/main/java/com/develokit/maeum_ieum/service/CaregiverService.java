@@ -198,9 +198,18 @@ public class CaregiverService {
     }
 
 
-    // AI 필수 규칙 자동 생성
+    // TODO AI 필수 규칙 자동 생성 -> WebFlux
     public Mono<AssistantMandatoryRuleRespDto> createAutoMandatoryRule(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqdto){
-        return openAiService.createGptMessage(assistantMandatoryRuleReqdto);
+        return openAiService.createGptMessage(assistantMandatoryRuleReqdto)
+                .doOnError(CustomApiException.class, e ->{
+                    log.error("AI 필수 규칙 자동 완성 응답 DTO 반환 중 오류 발생: "+e.getMessage());
+                    throw new CustomApiException("AI 필수 규칙 자동 완성 응답 DTO 반환 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+                });
+    }
+    // TODO AI 필수 규칙 자동 생성 -> Servlet
+
+    public AssistantMandatoryRuleRespDto createAutoMandatoryRuleWithFeign(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqdto){
+        return openAiService.createGptMessageWithFeign(assistantMandatoryRuleReqdto);
     }
 
 

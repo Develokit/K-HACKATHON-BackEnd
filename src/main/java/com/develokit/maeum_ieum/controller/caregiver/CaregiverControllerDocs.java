@@ -209,7 +209,7 @@ public interface CaregiverControllerDocs {
             @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = AssistantMandatoryRuleReqDto.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "GPT 메시지 생성 과정에서 에러 발생", content = @Content(schema = @Schema(implementation = AssistantMandatoryRuleReqDto.class), mediaType = "application/json")),
     })
-    Mono<ResponseEntity<?>> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
+    ResponseEntity<?> createAutoMandatoryRule(@PathVariable(name = "elderlyId")Long elderlyId,
                                                     @Valid @RequestBody AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto,
                                                     BindingResult bindingResult,
                                                     @AuthenticationPrincipal LoginUser loginUser);
