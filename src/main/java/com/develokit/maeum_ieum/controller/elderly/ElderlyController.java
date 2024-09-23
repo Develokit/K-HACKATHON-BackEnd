@@ -76,11 +76,20 @@ public class ElderlyController implements ElderlyControllerDocs {
         return messageService.getStreamMessage(createStreamMessageReqDto, elderlyId);
     }
 
+    //메시지 비스트림 생성
+    @PostMapping("/{elderlyId}/message")
+    public Mono<?> createNonStreamMessage(
+            @PathVariable(name = "elderlyId")Long elderlyId,
+            @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto, BindingResult bindingResult){
+
+        return messageService.getNonStreamMessage(createStreamMessageReqDto, elderlyId)
+                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
+    }
+
     @PostMapping("/{elderlyId}/voice-message")
     public Mono<?> createVoiceMessage(@PathVariable(name = "elderlyId")Long elderlyId,
                                                        @Valid @RequestBody CreateAudioReqDto createAudioReqDto,
                                                        BindingResult bindingResult){
-        elderlyService.updateLastChatDate(elderlyId);
 
         return messageService.getVoiceMessage(createAudioReqDto, elderlyId)
 //                .flatMap(voiceMessage -> saveVoiceMessageToFile(voiceMessage, "C:\\Users\\admin\\Desktop\\maeum-ieum\\src\\main\\resources\\마음이음.mp3")

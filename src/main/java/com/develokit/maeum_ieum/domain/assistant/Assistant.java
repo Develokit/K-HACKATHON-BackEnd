@@ -62,7 +62,7 @@ public class Assistant extends BaseEntity {
         else return true;
     }
     @Builder
-    public Assistant(String name, Caregiver caregiver, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId, String openAiInstruction, String mandatoryRule) {
+    public Assistant(Long id, String name, Caregiver caregiver, String conversationTopic, String responseType, String personality, String forbiddenTopic, String openAiAssistantId, String openAiInstruction, String mandatoryRule) {
         this.name = name;
         this.caregiver = caregiver;
         this.conversationTopic = conversationTopic;
@@ -72,6 +72,7 @@ public class Assistant extends BaseEntity {
         this.openAiAssistantId = openAiAssistantId;
         this.openAiInstruction = openAiInstruction;
         this.mandatoryRule = mandatoryRule;
+        this.id = id;
         caregiver.getAssistantList().add(this);
     }
 

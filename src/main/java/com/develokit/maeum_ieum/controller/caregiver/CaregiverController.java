@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.config.loginUser.LoginUser;
 import com.develokit.maeum_ieum.dto.assistant.ReqDto.CreateAssistantReqDto;
 import com.develokit.maeum_ieum.dto.assistant.RespDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
+import com.develokit.maeum_ieum.dto.report.ReqDto;
 import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.CaregiverService;
 import com.develokit.maeum_ieum.service.ElderlyService;
@@ -29,10 +30,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
+import java.net.MalformedURLException;
+
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.elderly.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.report.ReqDto.*;
+import static com.develokit.maeum_ieum.service.report.ReportService.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -273,6 +278,23 @@ public class CaregiverController implements CaregiverControllerDocs {
                                                      @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
                                                      @AuthenticationPrincipal LoginUser loginUser){
         return new ResponseEntity<>(ApiUtil.success(reportService.getElderlyMonthlyReportList(elderlyId, cursor, limit)), HttpStatus.OK);
+    }
+
+    //노인 사용자 보고서 메모 작성
+    @PostMapping("/elderlys/{elderlyId}/reports/{reportId}/memo")
+    public ResponseEntity<?> createReportMemo(@PathVariable(name = "elderlyId")Long elderlyId,
+                                              @PathVariable(name = "reportId")Long reportId,
+                                              @RequestBody @Valid ReportMemoCreateReqDto reportMemoCreateReqDto,
+                                              BindingResult bindingResult,
+                                              @AuthenticationPrincipal LoginUser loginUser){
+        return new ResponseEntity<>(ApiUtil.success(reportService.createReportMemo(reportMemoCreateReqDto, elderlyId, reportId)),HttpStatus.OK);
+    }
+
+    //노인 삭제
+    @DeleteMapping("/elderlys/{elderlyId}")
+    public ResponseEntity<?> deleteElderly(@PathVariable(name = "elderlyId")Long elderlyId,
+                                           @AuthenticationPrincipal LoginUser loginUser) throws MalformedURLException {
+        return new ResponseEntity<>(ApiUtil.success(elderlyService.deleteElderly(elderlyId, loginUser.getCaregiver().getUsername())), HttpStatus.OK);
     }
 
 

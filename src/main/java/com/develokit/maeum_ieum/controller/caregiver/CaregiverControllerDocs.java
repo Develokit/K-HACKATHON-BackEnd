@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
+import java.net.MalformedURLException;
+
 import static com.develokit.maeum_ieum.dto.assistant.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.assistant.RespDto.*;
 import static com.develokit.maeum_ieum.dto.caregiver.ReqDto.*;
@@ -264,4 +266,26 @@ public interface CaregiverControllerDocs {
                                                       @RequestParam(name = "cursor",required = false) @Parameter(description = "다음 데이터 조회를 위한 커서 값. 첫 요청 시 null 또는 비워둠. 다음 데이터 요청 시 이전 응답의 nextCursor를 사용") Long cursor,
                                                       @RequestParam(name = "limit", defaultValue = "10") @Parameter(description = "한 페이지에 표시할 항목 수. 기본값은 10") int limit,
                                                       @AuthenticationPrincipal LoginUser loginUser);
+
+    @Operation(summary = "노인 보고서 메모 생성 ", description = "보고서 상세 페이지에서 메모 작성할 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = ReportMemoCreateRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = ReportMemoCreateRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = ReportMemoCreateRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> createReportMemo(@PathVariable(name = "elderlyId")Long elderlyId,
+                                       @PathVariable(name = "reportId")Long reportId,
+                                       @RequestBody @Valid com.develokit.maeum_ieum.dto.report.ReqDto.ReportMemoCreateReqDto reportMemoCreateReqDto,
+                                       BindingResult bindingResult,
+                                       @AuthenticationPrincipal LoginUser loginUser);
+
+
+    @Operation(summary = "노인 사용자 삭제 ", description = "노인 사용자 삭제 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = ElderlyDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = ElderlyDeleteRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = ElderlyDeleteRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> deleteElderly(@PathVariable(name = "elderlyId")Long elderlyId,
+                                    @AuthenticationPrincipal LoginUser loginUser) throws MalformedURLException;
 }

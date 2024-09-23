@@ -1,5 +1,6 @@
 package com.develokit.maeum_ieum.controller.elderly;
 
+import com.develokit.maeum_ieum.dto.message.RespDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -21,6 +22,7 @@ import static com.develokit.maeum_ieum.dto.elderly.RespDto.*;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.ReqDto.EmergencyRequestCreateReqDto;
 import static com.develokit.maeum_ieum.dto.emergencyRequest.RespDto.EmergencyRequestCreateRespDto;
 import static com.develokit.maeum_ieum.dto.message.ReqDto.CreateStreamMessageReqDto;
+import static com.develokit.maeum_ieum.dto.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.message.RespDto.CreateStreamMessageRespDto;
 import static com.develokit.maeum_ieum.dto.openAi.audio.ReqDto.CreateAudioReqDto;
 import static com.develokit.maeum_ieum.dto.openAi.audio.RespDto.CreateAudioRespDto;
@@ -65,7 +67,14 @@ public interface ElderlyControllerDocs {
     ResponseEntity<?> getChatHistory(@PathVariable(name = "elderlyId") Long elderlyId,
                                      @RequestParam(name = "page", defaultValue = "0")int page,
                                      @RequestParam(name = "size", defaultValue = "10")int size);
-
+    @Operation(summary = "채팅 (비스트림 답변)", description = "텍스트 기반 채팅 시 요청. 전체 텍스트 메시지 반환")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = CreateMessageRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR(긴급 알림 요양사에게 전달 실패)", content = @Content(schema = @Schema(implementation = CreateMessageRespDto.class), mediaType = "application/json"))
+    })
+    Mono<?> createNonStreamMessage(
+            @PathVariable(name = "elderlyId")Long elderlyId,
+            @RequestBody @Valid CreateStreamMessageReqDto createStreamMessageReqDto, BindingResult bindingResult);
 
     @Operation(summary = "채팅 (스트림 답변)", description = "텍스트 기반 채팅 시 요청. 스트림으로 메시지 반환")
     @ApiResponses( value = {

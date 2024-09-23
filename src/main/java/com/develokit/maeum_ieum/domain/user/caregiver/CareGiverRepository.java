@@ -19,4 +19,9 @@ public interface CareGiverRepository extends JpaRepository<Caregiver, Long> {
     @Query("select c from Caregiver c")
     List<Caregiver> findAll();
 
+    @Query("select c from Caregiver c join fetch c.assistantList where c.id = :caregiverId")
+    Caregiver findCaregiverWithAssistants(@Param("caregiverId") Long caregiverId);
+
+    @Query("select c from Caregiver c join fetch c.elderlyList where c.id = :caregiverId")
+    Caregiver findCaregiverWithElderlys(@Param("caregiverId") Long caregiverId);
 }

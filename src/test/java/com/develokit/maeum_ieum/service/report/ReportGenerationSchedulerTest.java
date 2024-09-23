@@ -67,7 +67,7 @@ class ReportGenerationSchedulerTest {
 //        report.setStartDate(today.minusWeeks(1));
 
         Elderly elderlyC = em.createQuery("select e from Elderly e where e.id = :id", Elderly.class)
-                .setParameter("id", 2L)
+                .setParameter("id", 33L)
                 .getSingleResult();
 
         Report oldReport = Report.builder()

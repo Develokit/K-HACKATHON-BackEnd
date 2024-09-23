@@ -55,10 +55,10 @@ public class Elderly extends User {
 
     private LocalDateTime lastChatTime; //마지막 대화 날짜
 
-    @OneToMany(mappedBy = "elderly")
+    @OneToMany(mappedBy = "elderly", orphanRemoval = true)
     private List<Report> weeklyReports = new ArrayList<>(); //주간 보고서
 
-    @OneToMany(mappedBy = "elderly")
+    @OneToMany(mappedBy = "elderly", orphanRemoval = true)
     private List<Report> monthlyReports = new ArrayList<>(); //월간 보고서
 
     //TODO -> 프론트에서 추가하는 화면 구현하면 연결할것
@@ -80,13 +80,14 @@ public class Elderly extends User {
         this.lastChatTime = lastChatTime;
     }
     @Builder
-    public Elderly(String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String healthInfo, String homeAddress, Caregiver caregiver, Assistant assistant, EmergencyContactInfo emergencyContactInfo, Role role) {
+    public Elderly(Long id, String name, String contact, Gender gender, String imgUrl, LocalDate birthDate, String organization, String healthInfo, String homeAddress, Caregiver caregiver, Assistant assistant, EmergencyContactInfo emergencyContactInfo, Role role) {
         super(name, contact, gender, imgUrl, birthDate, organization, role);
         this.healthInfo = healthInfo;
         this.homeAddress = homeAddress;
         this.caregiver = caregiver;
         this.assistant = assistant;
         this.emergencyContactInfo = emergencyContactInfo;
+        this.id = id;
         caregiver.getElderlyList().add(this);
     }
 

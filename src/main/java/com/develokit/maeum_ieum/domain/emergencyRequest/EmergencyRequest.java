@@ -31,11 +31,12 @@ public class EmergencyRequest extends BaseEntity {
     //private boolean isRead; //읽었는지
 
     @Builder
-    public EmergencyRequest(EmergencyType emergencyType, Elderly elderly, Caregiver caregiver) {
+    public EmergencyRequest(Long id, EmergencyType emergencyType, Elderly elderly, Caregiver caregiver) {
         this.emergencyType = emergencyType;
         this.elderly = elderly;
         this.message = EmergencyRequest.createMessage(emergencyType, elderly);
         this.caregiver = caregiver;
+        this.id = id;
         caregiver.getEmergencyRequestList().add(this);
     }
     public static String createMessage(EmergencyType emergencyType, Elderly elderly){

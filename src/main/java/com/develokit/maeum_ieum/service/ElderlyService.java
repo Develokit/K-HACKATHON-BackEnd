@@ -2,6 +2,8 @@ package com.develokit.maeum_ieum.service;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
 import com.develokit.maeum_ieum.domain.assistant.AssistantRepository;
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequestRepository;
 import com.develokit.maeum_ieum.domain.message.Message;
 import com.develokit.maeum_ieum.domain.message.MessageRepository;
 import com.develokit.maeum_ieum.domain.report.Report;
@@ -15,6 +17,7 @@ import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
 import com.develokit.maeum_ieum.dto.assistant.RespDto;
 import com.develokit.maeum_ieum.dto.elderly.ReqDto.ElderlyCreateReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServlet;
 import lombok.*;
 import org.slf4j.Logger;
@@ -58,6 +61,8 @@ public class ElderlyService {
     private final OpenAiService openAiService;
     private final ReportRepository reportRepository;
     private final MessageRepository messageRepository;
+    private final EmergencyRequestRepository emergencyRequestRepository;
+
     private final Logger log = LoggerFactory.getLogger(CaregiverService.class);
 
     //노인 등록
@@ -339,42 +344,79 @@ public class ElderlyService {
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
-        if(elderlyPS.getCaregiver() != caregiverPS)
+        if(elderlyPS.getCaregiver() != caregiverPS) {
+            log.error("요양사 {}: 비관리 대상인 노인 {} 삭제 작업 시도", caregiverPS.getId(), elderlyId);
             throw new CustomApiException("관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
-
-        //s3에 있는 노인 프로필 사진 삭제
-        if(!elderlyPS.getImgUrl().isEmpty())
-            s3Service.deleteImage(elderlyPS.getImgUrl());
-
-
-        //TODO 노인 보고서 삭제하기
-
-        //노인 어시스턴트 삭제 & 요양사와의 연결 끊기
-        if(elderlyPS.getAssistant()!=null){
-            Assistant assistantPS = elderlyPS.getAssistant();
-            caregiverPS.removeAssistant(assistantPS);
-            assistantRepository.delete(assistantPS);
         }
 
-        //노인 삭제
-        caregiverPS.removeElderly(elderlyPS);
-        elderlyRepository.delete(elderlyPS);
+        //s3에 있는 노인 프로필 사진 삭제
+        String imgUrl = elderlyPS.getImgUrl();
+        if(imgUrl != null && !imgUrl.isEmpty()) {
+            log.info("노인 {}: 프로필 사진 삭제 작업 시작", elderlyId);
+            s3Service.deleteImage(imgUrl);
+            log.info("노인 {}: 프로필 사진 {} 삭제 완료", elderlyId, imgUrl);
+        }
 
+        log.info("노인 {}: 보고서 리스트 삭제 작업 시작", elderlyId);
+        //TODO 노인 보고서 삭제하기 (양방향: orphanRemoval=true 동작)
+        List<Report> reportList = reportRepository.findByElderly(elderlyPS);
+        int deletedWeeklyReportCnt = 0, deletedMonthlyReportCnt=0;
+        for (Report report : reportList) {
+            if(report.getReportType().equals(ReportType.WEEKLY)) {
+                elderlyPS.getWeeklyReports().remove(report);
+                deletedWeeklyReportCnt++;
+                //log.info("노인 {}: 주간 보고서 id {} 삭제 완료", elderlyId, report.getId());
+            }
+            else if(report.getReportType().equals(ReportType.MONTHLY)){
+                elderlyPS.getMonthlyReports().remove(report);
+                deletedMonthlyReportCnt++;
+                //log.info("노인 {}: 월간 보고서 id {} 삭제 완료", elderlyId, report.getId());
+            }
+        }
+        reportRepository.deleteAllByElderly(elderlyPS);
+        log.info("노인 {}: 삭제된 주간 보고서 개수 {}", elderlyId, deletedWeeklyReportCnt);
+        log.info("노인 {}: 삭제된 월간 보고서 개수 {}", elderlyId, deletedMonthlyReportCnt);
+
+        //TODO 노인 대화 기록 삭제하기(단방향)
+        log.info("노인 {}: 메시지 내역 삭제 작업 시작", elderlyId);
+        int deletedMessagesCnt = messageRepository.deleteAllByElderly(elderlyPS);
+        log.info("노인 {}: 삭제된 메시지 개수 {}", elderlyId, deletedMessagesCnt);
+
+        //TODO 노인 긴급 알람 내역 삭제하기(양방향: orphanRemoval=true 동작)
+        //TODO 아예 물리적으로 삭제할까 아니면 논리적 삭제해서 기록은 놔둘지
+        log.info("노인 {}: 긴급 알림 내역 삭제 작업 시작", elderlyId);
+        List<EmergencyRequest> emergencyRequestList = emergencyRequestRepository.findByElderly(elderlyPS);
+        if(!emergencyRequestList.isEmpty()) {
+            caregiverPS.getEmergencyRequestList().removeAll(emergencyRequestList);
+            emergencyRequestRepository.deleteAllByElderly(elderlyPS);
+        }
+        log.info("노인 {}: 삭제된 긴급 알림 내역 개수 {}", elderlyId, emergencyRequestList.size());
+
+
+        //TODO 노인 어시스턴트 삭제 & 요양사와의 연결 끊기 (양방향: orphanRemoval=true 동작)
+        if(elderlyPS.getAssistant()!=null) {
+            log.info("노인 {}: AI 어시스턴트 삭제 작업 시작", elderlyId);
+            Caregiver caregiverWithAssistants = careGiverRepository.findCaregiverWithAssistants(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 assistantList 한번에 끌고옴
+            Assistant assistantPS = elderlyPS.getAssistant();
+            caregiverWithAssistants.removeAssistant(assistantPS); //컬렉션 초기화된 caregiver 객체를 사용해 삭제
+            assistantRepository.delete(assistantPS);
+            log.info("노인 {}: 삭제된 AI 어시스턴트 id {}", elderlyId, assistantPS.getId());
+        }
+
+        //TODO 노인 삭제(양방향: orphanRemoval=true 동작)
+        log.info("노인 {}: 노인 삭제 작업 시작", elderlyId);
+        Caregiver caregiverWithElderlys = careGiverRepository.findCaregiverWithElderlys(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 elderlyList 한번에 끌고옴
+        caregiverWithElderlys.removeElderly(elderlyPS);
+        elderlyRepository.delete(elderlyPS);
+        log.info("노인 {}: 요양사 id {} 관리 대상에서 삭제 완료", elderlyId, caregiverPS.getId());
+
+
+        log.info("노인 {}: 성공적으로 삭제되었습니다", elderlyId);
         return new ElderlyDeleteRespDto(elderlyPS);
     }
 
 
-    @NoArgsConstructor
-    @Getter
-    public static class ElderlyDeleteRespDto{
-        public ElderlyDeleteRespDto(Elderly elderly) {
-            this.elderlyName = elderly.getName();
-            this.deleted = true;
-        }
 
-        private String elderlyName;
-        private boolean deleted;
-    }
 
 
 

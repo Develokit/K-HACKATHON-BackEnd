@@ -46,7 +46,7 @@ public class Caregiver extends User {
     @ToString.Exclude
     private List<Elderly> elderlyList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY) //긴급 알림 리스트
+    @OneToMany(mappedBy = "caregiver", fetch = FetchType.LAZY, orphanRemoval = true) //긴급 알림 리스트
     @ToString.Exclude
     private List<EmergencyRequest> emergencyRequestList = new ArrayList<>();
 
@@ -73,6 +73,7 @@ public class Caregiver extends User {
     public void removeElderly(Elderly elderly){
         this.elderlyList.remove(elderly);
     }
+
 
 
 }

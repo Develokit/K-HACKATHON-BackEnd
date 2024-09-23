@@ -24,6 +24,18 @@ import java.util.stream.Collectors;
 import static com.develokit.maeum_ieum.dto.openAi.message.RespDto.*;
 
 public class RespDto {
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "요양사 삭제 응답 DTO")
+    public static class ElderlyDeleteRespDto{
+        public ElderlyDeleteRespDto(Elderly elderly) {
+            this.elderlyName = elderly.getName();
+            this.deleted = true;
+        }
+
+        private String elderlyName;
+        private boolean deleted;
+    }
     @Getter
     @AllArgsConstructor
     @Schema(description = "주간 보고서 생성 요일 변경 응답 DTO")

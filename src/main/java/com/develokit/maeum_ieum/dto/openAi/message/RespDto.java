@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.dto.openAi.message;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.aspectj.bridge.Message;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class RespDto {
 
     @Getter
     @NoArgsConstructor
+    @ToString
     public static class MessageRespDto {
         private String id;
         private String object;
@@ -40,12 +42,14 @@ public class RespDto {
 
         @Getter
         @NoArgsConstructor
+        @ToString
         public static class ContentDto{
             private String type;
             private TextDto text;
 
             @Getter
             @NoArgsConstructor
+            @ToString
             public static class TextDto{
                 private String value;
             }

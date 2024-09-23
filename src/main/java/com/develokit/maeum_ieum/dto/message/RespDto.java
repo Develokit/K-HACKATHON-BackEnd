@@ -2,12 +2,24 @@ package com.develokit.maeum_ieum.dto.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 public class RespDto {
+
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "비스트림 답변 DTO")
+    public static class CreateMessageRespDto{
+        public CreateMessageRespDto(String answer) {
+            this.answer = answer;
+        }
+        @Schema(description = "AI 어시스턴트 답변")
+        private String answer;
+    }
 
     @NoArgsConstructor
     @Getter

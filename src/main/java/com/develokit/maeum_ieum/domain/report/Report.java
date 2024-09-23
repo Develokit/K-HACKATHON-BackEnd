@@ -1,13 +1,12 @@
 package com.develokit.maeum_ieum.domain.report;
 
-import com.amazonaws.services.ec2.model.CreateDhcpOptionsRequest;
 import com.develokit.maeum_ieum.domain.base.BaseEntity;
+import com.develokit.maeum_ieum.domain.report.indicator.*;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,10 +33,6 @@ public class Report extends BaseEntity {
 
     @Column(length = 2048)
     private String qualitativeAnalysis; //정성적 분석
-
-    @Enumerated(EnumType.STRING)
-    private HealthStatus healthStatus; //건강 상태 지표
-
     @Column(length = 512)
     private String memo; //메모
 
@@ -47,18 +42,42 @@ public class Report extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private DayOfWeek reportDay;
 
+
+    //================================보고서 지표================================
+
+    @Enumerated(EnumType.STRING)
+    private HealthStatusIndicator healthStatusIndicator; //건강 상태 지표
+
+    @Enumerated(EnumType.STRING)
+    private ActivityLevelIndicator activityLevelIndicator; //활동 수준 지표
+
+    @Enumerated(EnumType.STRING)
+    private CognitiveFunctionIndicator cognitiveFunctionIndicator; //인지 기능 지표
+
+    @Enumerated(EnumType.STRING)
+    private LifeSatisfactionIndicator lifeSatisfactionIndicator;//생활 만족도 지표
+
+    @Enumerated(EnumType.STRING)
+    private PsychologicalStabilityIndicator psychologicalStabilityIndicator; //심리적 안정 지표
+
+    @Enumerated(EnumType.STRING)
+    private SocialConnectivityIndicator socialConnectivityIndicator; //사회적 연결성 지표
+
+    @Enumerated(EnumType.STRING)
+    private SupportNeedsIndicator supportNeedsIndicator; //필요 지원 지표
+
     @Builder
-    public Report(Elderly elderly, ReportType reportType, LocalDateTime startDate, LocalDateTime endDate, String quantitativeAnalysis, String qualitativeAnalysis, HealthStatus healthStatus, String memo, ReportStatus reportStatus, DayOfWeek reportDay) {
+    public Report(Long id, Elderly elderly, ReportType reportType, LocalDateTime startDate, LocalDateTime endDate, String quantitativeAnalysis, String qualitativeAnalysis,  String memo, ReportStatus reportStatus, DayOfWeek reportDay) {
         this.elderly = elderly;
         this.reportType = reportType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.quantitativeAnalysis = quantitativeAnalysis;
         this.qualitativeAnalysis = qualitativeAnalysis;
-        this.healthStatus = healthStatus;
         this.memo = memo;
         this.reportStatus = reportStatus;
         this.reportDay = reportDay;
+        this.id = id;
     }
     public void modifyStartDateAndReportDay(LocalDateTime localDateTime, DayOfWeek dayOfWeek){
         this.startDate = localDateTime;
@@ -82,9 +101,10 @@ public class Report extends BaseEntity {
         this.qualitativeAnalysis = qualitativeAnalysis;
     }
 
-    /*
-            보고서 지표들
-             */
+    public void setMemo(String memo){
+        this.memo = memo;
+    }
+
     public Report(Elderly elderly, LocalDateTime startDate, LocalDateTime endDate, ReportType reportType){
         this.elderly = elderly;
         this.startDate = startDate;

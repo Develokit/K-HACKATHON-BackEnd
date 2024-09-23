@@ -1,6 +1,10 @@
-package com.develokit.maeum_ieum.domain.report;
+package com.develokit.maeum_ieum.domain.report.indicator;
 
-public enum HealthStatus {
+import lombok.Getter;
+
+//생활 만족도 지표
+@Getter
+public enum LifeSatisfactionIndicator {
     VERY_POOR("정말 별로예요"),
     POOR("별로예요"),
     FAIR("그냥 그래요"),
@@ -9,7 +13,7 @@ public enum HealthStatus {
 
     private final String description;
 
-    HealthStatus(String description) {
+    LifeSatisfactionIndicator(String description) {
         this.description = description;
     }
 

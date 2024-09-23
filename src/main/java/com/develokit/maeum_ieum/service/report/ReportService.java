@@ -6,8 +6,12 @@ import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
+import com.develokit.maeum_ieum.dto.report.ReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.develokit.maeum_ieum.dto.report.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.report.RespDto.*;
 
 @Service
@@ -29,6 +34,32 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final ElderlyRepository elderlyRepository;
     private final Logger log = LoggerFactory.getLogger(ReportService.class);
+
+    //보고서 메모 작성하는 기능
+    @Transactional
+    public ReportMemoCreateRespDto createReportMemo(ReportMemoCreateReqDto reportMemoCreateReqDto, Long elderlyId, Long reportId){
+
+        Report reportPS = reportRepository.findById(reportId).orElseThrow(
+                () -> new CustomApiException("존재하지 않는 보고서입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        if(reportPS.getReportStatus() != ReportStatus.COMPLETED)
+            throw new CustomApiException("접근할 수 없는 보고서입니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+
+        elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //메모 추가(또는 수정)
+        reportPS.setMemo(reportMemoCreateReqDto.getMemo());
+
+        return new ReportMemoCreateRespDto(reportPS);
+    }
+
+
+
+
+
 
     //노인 사용자의 발행된 전체 주간 보고서 내역 보내기
     //노인 1의 '2024년 07월 07일 (수)', '2024년 06월 31일 (수)', .... 이런 식으로
@@ -80,9 +111,6 @@ public class ReportService {
         return new MonthlyReportListRespDto(reportList, nextCursor);
 
     }
-
-
-
 
     //지표에 따른 보고서 생성하기
     @Transactional

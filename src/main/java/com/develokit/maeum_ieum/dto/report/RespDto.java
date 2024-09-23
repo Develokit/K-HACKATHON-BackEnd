@@ -9,6 +9,17 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 public class RespDto {
+
+    @NoArgsConstructor
+    @Getter
+    @Schema(description = "보고서 메모 생성 반환 DTO")
+    public static class ReportMemoCreateRespDto{
+        public ReportMemoCreateRespDto(Report report) {
+            this.memo = report.getMemo();
+        }
+        @Schema(description = "작성한 메모")
+        private String memo;
+    }
     @NoArgsConstructor
     @Getter
     @Schema(description = "노인 월간 보고서 리스트 반환 DTO")
