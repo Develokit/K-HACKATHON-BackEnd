@@ -6,6 +6,7 @@ import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyType;
 import com.develokit.maeum_ieum.domain.message.Message;
 import com.develokit.maeum_ieum.domain.message.MessageType;
 import com.develokit.maeum_ieum.domain.report.Report;
+import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
 import com.develokit.maeum_ieum.domain.report.indicator.*;
 import com.develokit.maeum_ieum.domain.user.Gender;
@@ -27,6 +28,10 @@ import java.util.List;
 
 public class DummyObject {
 
+    protected EmergencyRequest mockEmergencyRequest(Elderly elderly, Caregiver caregiver){
+        return EmergencyRequest.builder().elderly(elderly).caregiver(caregiver).emergencyType(EmergencyType.CAREGIVER_NOTIFY).build();
+    }
+
     protected Report mockMonthlyReport(Elderly elderly) throws JsonProcessingException {
 
         LocalDateTime endDate = LocalDateTime.now();
@@ -44,6 +49,7 @@ public class DummyObject {
                 .psychologicalStabilityIndicator(PsychologicalStabilityIndicator.VERY_POOR)
                 .socialConnectivityIndicator(SocialConnectivityIndicator.GOOD)
                 .supportNeedsIndicator(SupportNeedsIndicator.FAIR)
+                .reportStatus(ReportStatus.COMPLETED)
                 .memo("유우시군을 분석했어🤍")
                 .build();
 
@@ -74,6 +80,7 @@ public class DummyObject {
                 .psychologicalStabilityIndicator(PsychologicalStabilityIndicator.VERY_POOR)
                 .socialConnectivityIndicator(SocialConnectivityIndicator.GOOD)
                 .supportNeedsIndicator(SupportNeedsIndicator.FAIR)
+                .reportStatus(ReportStatus.COMPLETED)
                 .memo("유우시군을 분석했어🤍")
                 .build();
 
@@ -100,6 +107,7 @@ public class DummyObject {
                 .psychologicalStabilityIndicator(PsychologicalStabilityIndicator.VERY_POOR)
                 .socialConnectivityIndicator(SocialConnectivityIndicator.GOOD)
                 .supportNeedsIndicator(SupportNeedsIndicator.FAIR)
+                .reportStatus(ReportStatus.COMPLETED)
                 .memo("유우시군을 분석했어🤍")
                 .build();
 
@@ -183,7 +191,6 @@ public class DummyObject {
         return EmergencyRequest.builder()
                 .caregiver(caregiver)
                 .elderly(elderly)
-                .id(1L)
                 .emergencyType(EmergencyType.CAREGIVER_NOTIFY)
                 .build();
     }
@@ -231,7 +238,6 @@ public class DummyObject {
     protected Elderly newElderly(Caregiver caregiver,Long elderlyId){
         return Elderly.builder()
                 .name("노인1")
-                .id(elderlyId)
                 .role(Role.USER)
                 .contact("010-1111-3333")
                 .healthInfo("탕후루")

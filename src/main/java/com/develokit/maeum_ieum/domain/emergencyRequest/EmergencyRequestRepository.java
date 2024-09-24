@@ -27,7 +27,15 @@ public interface EmergencyRequestRepository extends JpaRepository<EmergencyReque
 
     List<EmergencyRequest> findByElderly(Elderly elderly);
 
+//    @Modifying(clearAutomatically = true)
+//    @Query("delete from EmergencyRequest er where er.elderly = :elderly")
+//    void deleteAllByElderly(@Param("elderly") Elderly elderly);
+
     @Modifying(clearAutomatically = true)
     @Query("delete from EmergencyRequest er where er.elderly = :elderly")
-    void deleteAllByElderly(@Param("elderly") Elderly elderly);
+    int deleteAllByElderly(@Param("elderly") Elderly elderly);
+    @Query("SELECT er FROM EmergencyRequest er JOIN FETCH er.elderly e WHERE e = :elderly")
+    List<EmergencyRequest> findByElderlyWithFetch(@Param("elderly") Elderly elderly);
+
+
 }

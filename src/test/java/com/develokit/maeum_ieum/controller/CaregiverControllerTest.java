@@ -37,6 +37,8 @@ class CaregiverControllerTest extends DummyObject {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper om;
 
+
+
     @Test
     @WithUserDetails(setupBefore = TestExecutionEvent.TEST_EXECUTION, value = "user6666")
     void 월간보고서_정량적평가_조회_테스트() throws Exception{

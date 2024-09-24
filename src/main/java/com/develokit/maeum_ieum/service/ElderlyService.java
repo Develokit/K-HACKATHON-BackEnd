@@ -20,6 +20,7 @@ import com.develokit.maeum_ieum.ex.CustomApiException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServlet;
 import lombok.*;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.core.Local;
@@ -51,7 +52,7 @@ import static com.develokit.maeum_ieum.dto.openAi.thread.RespDto.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ElderlyService {
 
     private final ElderlyRepository elderlyRepository;
@@ -66,7 +67,7 @@ public class ElderlyService {
     private final Logger log = LoggerFactory.getLogger(CaregiverService.class);
 
     //노인 등록
-    @Transactional
+    //@Transactional
     public ElderlyCreateRespDto createElderly(ElderlyCreateReqDto elderlyCreateReqDto, String username){
 
         //요양사 가져오기
@@ -132,7 +133,7 @@ public class ElderlyService {
     }
 
 
-    @Transactional
+    //@Transactional
     //채팅 화면 들어가기: 어시스턴트 검증 및 스레드 검증 진행
     public CheckAssistantInfoRespDto checkAssistantInfo(Long elderlyId, Long assistantId){
 
@@ -209,7 +210,7 @@ public class ElderlyService {
     }
 
 
-    @Transactional
+    //@Transactional
     public void updateLastChatDate(Long elderlyId){
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
@@ -218,7 +219,7 @@ public class ElderlyService {
     }
 
     //TODO 요양사 화면에서 노인 기본 정보 수정 - 이미지 제외
-    @Transactional
+    //@Transactional
     public ElderlyModifyRespDto modifyElderlyInfo(ElderlyModifyReqDto elderlyModifyReqDto, Long elderlyId, String username){
 
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
@@ -247,7 +248,7 @@ public class ElderlyService {
     }
 
     //요양사 화면에서 노인 프로필 사진 수정
-    @Transactional
+    //@Transactional
     public ElderlyImgModifyRespDto modifyElderlyImg(MultipartFile file, Long elderlyId){
 
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
@@ -289,7 +290,7 @@ public class ElderlyService {
 
 
     //보고서 날짜 수정 -> 날짜를 수정한 localDateTime을 보고서의 startDate으로 삼아서 빈 보고서 생성
-    @Transactional
+    //@Transactional
     public ElderlyReportDayModifyRespDto modifyReportDay(Long elderlyId, ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto){
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
@@ -333,10 +334,10 @@ public class ElderlyService {
     }
 
     //TODO 노인 사용자 삭제 -> 보고서도 삭제 해야함...? (보고서 삭제 할 것 일단,..)
-    @Transactional
+    //@Transactional
     public ElderlyDeleteRespDto deleteElderly(Long elderlyId, String username) throws MalformedURLException {
 
-        Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
+        Caregiver caregiverPS = careGiverRepository.findByUsernameWithElderlys(username).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
@@ -344,75 +345,156 @@ public class ElderlyService {
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
+        String elderlyName = elderlyPS.getName();
+
         if(elderlyPS.getCaregiver() != caregiverPS) {
             log.error("요양사 {}: 비관리 대상인 노인 {} 삭제 작업 시도", caregiverPS.getId(), elderlyId);
             throw new CustomApiException("관리 대상이 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
         }
 
-        //s3에 있는 노인 프로필 사진 삭제
-        String imgUrl = elderlyPS.getImgUrl();
-        if(imgUrl != null && !imgUrl.isEmpty()) {
-            log.info("노인 {}: 프로필 사진 삭제 작업 시작", elderlyId);
-            s3Service.deleteImage(imgUrl);
-            log.info("노인 {}: 프로필 사진 {} 삭제 완료", elderlyId, imgUrl);
-        }
 
-        log.info("노인 {}: 보고서 리스트 삭제 작업 시작", elderlyId);
-        //TODO 노인 보고서 삭제하기 (양방향: orphanRemoval=true 동작)
-        List<Report> reportList = reportRepository.findByElderly(elderlyPS);
-        int deletedWeeklyReportCnt = 0, deletedMonthlyReportCnt=0;
-        for (Report report : reportList) {
-            if(report.getReportType().equals(ReportType.WEEKLY)) {
-                elderlyPS.getWeeklyReports().remove(report);
-                deletedWeeklyReportCnt++;
-                //log.info("노인 {}: 주간 보고서 id {} 삭제 완료", elderlyId, report.getId());
-            }
-            else if(report.getReportType().equals(ReportType.MONTHLY)){
-                elderlyPS.getMonthlyReports().remove(report);
-                deletedMonthlyReportCnt++;
-                //log.info("노인 {}: 월간 보고서 id {} 삭제 완료", elderlyId, report.getId());
-            }
-        }
-        reportRepository.deleteAllByElderly(elderlyPS);
-        log.info("노인 {}: 삭제된 주간 보고서 개수 {}", elderlyId, deletedWeeklyReportCnt);
-        log.info("노인 {}: 삭제된 월간 보고서 개수 {}", elderlyId, deletedMonthlyReportCnt);
+        // S3에서 프로필 사진 삭제
+        deleteElderlyProfileImage(elderlyPS);
 
-        //TODO 노인 대화 기록 삭제하기(단방향)
-        log.info("노인 {}: 메시지 내역 삭제 작업 시작", elderlyId);
-        int deletedMessagesCnt = messageRepository.deleteAllByElderly(elderlyPS);
-        log.info("노인 {}: 삭제된 메시지 개수 {}", elderlyId, deletedMessagesCnt);
+        // 보고서 삭제
+        deleteElderlyReports(elderlyPS);
 
-        //TODO 노인 긴급 알람 내역 삭제하기(양방향: orphanRemoval=true 동작)
-        //TODO 아예 물리적으로 삭제할까 아니면 논리적 삭제해서 기록은 놔둘지
-        log.info("노인 {}: 긴급 알림 내역 삭제 작업 시작", elderlyId);
-        List<EmergencyRequest> emergencyRequestList = emergencyRequestRepository.findByElderly(elderlyPS);
-        if(!emergencyRequestList.isEmpty()) {
-            caregiverPS.getEmergencyRequestList().removeAll(emergencyRequestList);
-            emergencyRequestRepository.deleteAllByElderly(elderlyPS);
-        }
-        log.info("노인 {}: 삭제된 긴급 알림 내역 개수 {}", elderlyId, emergencyRequestList.size());
+        // 메시지 내역 삭제
+        deleteElderlyMessages(elderlyPS);
 
+        // 긴급 알림 내역 삭제
+        deleteElderlyEmergencyRequests(elderlyPS, caregiverPS);
 
-        //TODO 노인 어시스턴트 삭제 & 요양사와의 연결 끊기 (양방향: orphanRemoval=true 동작)
-        if(elderlyPS.getAssistant()!=null) {
-            log.info("노인 {}: AI 어시스턴트 삭제 작업 시작", elderlyId);
+        // AI 어시스턴트 삭제
+        //deleteElderlyAssistant(elderlyPS, caregiverPS);
+        if(elderlyPS.getAssistant() != null) {
+            log.info("노인 {}: AI 어시스턴트 삭제 작업 시작", elderlyPS.getId());
             Caregiver caregiverWithAssistants = careGiverRepository.findCaregiverWithAssistants(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 assistantList 한번에 끌고옴
             Assistant assistantPS = elderlyPS.getAssistant();
             caregiverWithAssistants.removeAssistant(assistantPS); //컬렉션 초기화된 caregiver 객체를 사용해 삭제
             assistantRepository.delete(assistantPS);
-            log.info("노인 {}: 삭제된 AI 어시스턴트 id {}", elderlyId, assistantPS.getId());
+            log.info("노인 {}: 삭제된 AI 어시스턴트 id {}", elderlyPS.getId(), assistantPS.getId());
         }
 
-        //TODO 노인 삭제(양방향: orphanRemoval=true 동작)
-        log.info("노인 {}: 노인 삭제 작업 시작", elderlyId);
-        Caregiver caregiverWithElderlys = careGiverRepository.findCaregiverWithElderlys(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 elderlyList 한번에 끌고옴
-        caregiverWithElderlys.removeElderly(elderlyPS);
+        // 노인 삭제
+        caregiverPS.removeElderly(elderlyPS);
         elderlyRepository.delete(elderlyPS);
-        log.info("노인 {}: 요양사 id {} 관리 대상에서 삭제 완료", elderlyId, caregiverPS.getId());
+
+//        //s3에 있는 노인 프로필 사진 삭제
+//        String imgUrl = elderlyPS.getImgUrl();
+//        if(imgUrl != null && !imgUrl.isEmpty()) {
+//            log.info("노인 {}: 프로필 사진 삭제 작업 시작", elderlyId);
+//            s3Service.deleteImage(imgUrl);
+//            log.info("노인 {}: 프로필 사진 {} 삭제 완료", elderlyId, imgUrl);
+//        }
+//
+//        log.info("노인 {}: 보고서 리스트 삭제 작업 시작", elderlyId);
+//        //TODO 노인 보고서 삭제하기 (양방향: orphanRemoval=true 동작)
+//        List<Report> reportList = reportRepository.findByElderly(elderlyPS);
+//        int deletedWeeklyReportCnt = 0, deletedMonthlyReportCnt=0;
+//        for (Report report : reportList) {
+//            if(report.getReportType().equals(ReportType.WEEKLY)) {
+//                elderlyPS.getWeeklyReports().remove(report);
+//                deletedWeeklyReportCnt++;
+//                //log.info("노인 {}: 주간 보고서 id {} 삭제 완료", elderlyId, report.getId());
+//            }
+//            else if(report.getReportType().equals(ReportType.MONTHLY)){
+//                elderlyPS.getMonthlyReports().remove(report);
+//                deletedMonthlyReportCnt++;
+//                //log.info("노인 {}: 월간 보고서 id {} 삭제 완료", elderlyId, report.getId());
+//            }
+//        }
+//        reportRepository.deleteAllByElderly(elderlyPS);
+//        log.info("노인 {}: 삭제된 주간 보고서 개수 {}", elderlyId, deletedWeeklyReportCnt);
+//        log.info("노인 {}: 삭제된 월간 보고서 개수 {}", elderlyId, deletedMonthlyReportCnt);
+//
+//        //TODO 노인 대화 기록 삭제하기(단방향)
+//        log.info("노인 {}: 메시지 내역 삭제 작업 시작", elderlyId);
+//        int deletedMessagesCnt = messageRepository.deleteAllByElderly(elderlyPS);
+//        log.info("노인 {}: 삭제된 메시지 개수 {}", elderlyId, deletedMessagesCnt);
+//
+//        //TODO 노인 긴급 알람 내역 삭제하기(양방향: orphanRemoval=true 동작)
+//        //TODO 아예 물리적으로 삭제할까 아니면 논리적 삭제해서 기록은 놔둘지
+//        log.info("노인 {}: 긴급 알림 내역 삭제 작업 시작", elderlyId);
+//        List<EmergencyRequest> emergencyRequestList = emergencyRequestRepository.findByElderly(elderlyPS);
+//        if(!emergencyRequestList.isEmpty()) {
+//            Caregiver caregiverWithEmergencyRequests = careGiverRepository.findCaregiverWithEmergencyRequests(caregiverPS.getId());
+//            caregiverWithEmergencyRequests.getEmergencyRequestList().removeAll(emergencyRequestList);
+//            emergencyRequestRepository.deleteAllByElderly(elderlyPS);
+//        }
+//        log.info("노인 {}: 삭제된 긴급 알림 내역 개수 {}", elderlyId, emergencyRequestList.size());
+//
+//
+//        //TODO 노인 어시스턴트 삭제 & 요양사와의 연결 끊기 (양방향: orphanRemoval=true 동작)
+//        if(elderlyPS.getAssistant()!=null) {
+//            log.info("노인 {}: AI 어시스턴트 삭제 작업 시작", elderlyId);
+//            Caregiver caregiverWithAssistants = careGiverRepository.findCaregiverWithAssistants(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 assistantList 한번에 끌고옴
+//            Assistant assistantPS = elderlyPS.getAssistant();
+//            caregiverWithAssistants.removeAssistant(assistantPS); //컬렉션 초기화된 caregiver 객체를 사용해 삭제
+//            assistantRepository.delete(assistantPS);
+//            log.info("노인 {}: 삭제된 AI 어시스턴트 id {}", elderlyId, assistantPS.getId());
+//        }
+//
+//        //TODO 노인 삭제(양방향: orphanRemoval=true 동작)
+//        log.info("노인 {}: 노인 삭제 작업 시작", elderlyId);
+//        Caregiver caregiverWithElderlys = careGiverRepository.findCaregiverWithElderlys(caregiverPS.getId());//컬렉션 지연 로딩 프록시 문제로 인해 페치 조인으로 elderlyList 한번에 끌고옴
+//        caregiverWithElderlys.removeElderly(elderlyPS);
+//        elderlyRepository.delete(elderlyPS);
+//        log.info("노인 {}: 요양사 id {} 관리 대상에서 삭제 완료", elderlyId, caregiverPS.getId());
 
 
         log.info("노인 {}: 성공적으로 삭제되었습니다", elderlyId);
-        return new ElderlyDeleteRespDto(elderlyPS);
+        return new ElderlyDeleteRespDto(elderlyName);
+    }
+    private void deleteElderlyProfileImage(Elderly elderly) throws MalformedURLException {
+        String imgUrl = elderly.getImgUrl();
+        if(imgUrl != null && !imgUrl.isEmpty()) {
+            log.info("노인 {}: 프로필 사진 삭제 작업 시작", elderly.getId());
+            s3Service.deleteImage(imgUrl);
+            log.info("노인 {}: 프로필 사진 {} 삭제 완료", elderly.getId(), imgUrl);
+        }
+    }
+
+    private void deleteElderlyReports(Elderly elderly) {
+        log.info("노인 {}: 보고서 삭제 작업 시작", elderly.getId());
+        int deletedReportCount = reportRepository.deleteAllByElderly(elderly);
+        log.info("노인 {}: 삭제된 보고서 개수 {}", elderly.getId(), deletedReportCount);
+    }
+
+    private void deleteElderlyMessages(Elderly elderly) {
+        log.info("노인 {}: 메시지 내역 삭제 작업 시작", elderly.getId());
+        int deletedMessageCount = messageRepository.deleteAllByElderly(elderly);
+        log.info("노인 {}: 삭제된 메시지 개수 {}", elderly.getId(), deletedMessageCount);
+    }
+
+    private void deleteElderlyEmergencyRequests(Elderly elderly, Caregiver caregiver) {
+        log.info("노인 {}: 긴급 알림 내역 삭제 작업 시작", elderly.getId());
+        int deletedEmergencyRequestCount = emergencyRequestRepository.deleteAllByElderly(elderly);
+        log.info("노인 {}: 삭제된 긴급 알림 내역 개수 {}", elderly.getId(), deletedEmergencyRequestCount);
+    }
+
+    private void deleteElderlyAssistant(Elderly elderly, Caregiver caregiver) {
+        if(elderly.getAssistant() != null) {
+            log.info("노인 {}: AI 어시스턴트 삭제 작업 시작", elderly.getId());
+            Assistant assistant = elderly.getAssistant();
+
+            Assistant assistantPS = caregiver.getAssistantList().stream()
+                    .filter(ai -> ai.getId().equals(assistant.getId()))
+                    .findFirst()
+                    .get();
+
+            caregiver.removeAssistant(assistantPS);
+            assistantRepository.delete(assistantPS);
+            log.info("노인 {}: 삭제된 AI 어시스턴트 id {}", elderly.getId(), assistantPS.getId());
+        }
+    }
+
+    private void deleteElderlyFromCaregiver(Elderly elderly, Caregiver caregiver) {
+        log.info("노인 {}: 노인 삭제 작업 시작", elderly.getId());
+        caregiver.getElderlyList().size();
+        caregiver.removeElderly(elderly);
+        elderlyRepository.delete(elderly);
+        log.info("노인 {}: 요양사 id {} 관리 대상에서 삭제 완료", elderly.getId(), caregiver.getId());
     }
 
 

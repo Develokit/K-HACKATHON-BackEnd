@@ -16,6 +16,10 @@ public interface CareGiverRepository extends JpaRepository<Caregiver, Long> {
     @Query("select c from Caregiver c where c.username = :username")
     Optional<Caregiver> findByUsername(@Param(value = "username")String username);
 
+
+    @Query("SELECT c FROM Caregiver c LEFT JOIN FETCH c.elderlyList WHERE c.username = :username")
+    Optional<Caregiver> findByUsernameWithElderlys(@Param("username") String username);
+
     @Query("select c from Caregiver c")
     List<Caregiver> findAll();
 
@@ -24,4 +28,7 @@ public interface CareGiverRepository extends JpaRepository<Caregiver, Long> {
 
     @Query("select c from Caregiver c join fetch c.elderlyList where c.id = :caregiverId")
     Caregiver findCaregiverWithElderlys(@Param("caregiverId") Long caregiverId);
+
+    @Query("select c from Caregiver c join fetch c.emergencyRequestList where c.id = :caregiverId")
+    Caregiver findCaregiverWithEmergencyRequests(@Param("caregiverId") Long caregiverId);
 }

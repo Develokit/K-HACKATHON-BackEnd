@@ -28,8 +28,8 @@ public class RespDto {
     @Getter
     @Schema(description = "요양사 삭제 응답 DTO")
     public static class ElderlyDeleteRespDto{
-        public ElderlyDeleteRespDto(Elderly elderly) {
-            this.elderlyName = elderly.getName();
+        public ElderlyDeleteRespDto(String elderlyName) {
+            this.elderlyName = elderlyName;
             this.deleted = true;
         }
 

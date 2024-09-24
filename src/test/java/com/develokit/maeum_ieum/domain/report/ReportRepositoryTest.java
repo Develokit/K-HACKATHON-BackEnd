@@ -1,10 +1,13 @@
 package com.develokit.maeum_ieum.domain.report;
 
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequest;
+import com.develokit.maeum_ieum.domain.emergencyRequest.EmergencyRequestRepository;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
 import com.develokit.maeum_ieum.dummy.DummyObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -31,19 +34,49 @@ class ReportRepositoryTest extends DummyObject {
     @Autowired
     private ElderlyRepository elderlyRepository;
 
+    @Autowired private EmergencyRequestRepository emergencyRequestRepository;
+
+
     @Autowired private EntityManager em;
+
+    @BeforeEach
+    void setUp(){
+
+    }
+
+    @Test
+    @Rollback(value = false)
+    @Transactional
+    void 긴급알림추가하기(){
+        Optional<Elderly> elderly = elderlyRepository.findById(34L);
+
+        Elderly elderlyPS = elderly.get();
+
+        for(int i = 0;i<10;i++) {
+            EmergencyRequest emergencyRequest = newMockEmergencyRequest(elderlyPS, elderlyPS.getCaregiver());
+            em.persist(emergencyRequest);
+        }
+    }
 
     @Test
     @Rollback(value = false)
     @Transactional
     void 테스트용_주간보고서_생성하기() throws JsonProcessingException {
-        Optional<Elderly> elderly = elderlyRepository.findById(34L);
+        Optional<Elderly> elderly = elderlyRepository.findById(66L);
 
         Elderly elderlyPS = elderly.get();
 
-        Report report = mockWeeklyReport(elderlyPS);
+        for(int i = 0;i<10;i++) {
+            Report report = mockWeeklyReport(elderlyPS);
+            em.persist(report);
+        }
 
-        em.persist(report);
+        for(int i = 0;i<10;i++) {
+            Report report = mockMonthlyReport(elderlyPS);
+            em.persist(report);
+        }
+
+
     }
 
     @Test
