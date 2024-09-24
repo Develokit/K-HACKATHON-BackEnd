@@ -24,6 +24,7 @@ public class CustomUtil {
 
     }
 
+    //채팅방 시간
     public static String LocalDateTimeFormatForChatResponse(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
         return localDateTime.format(formatter);
@@ -35,10 +36,18 @@ public class CustomUtil {
         return split[0]+"년 "+split[1]+"월 "+split[2]+"일";
     }
 
-    public static String LocalDateTimeToWeeklyReportPublishedDate(LocalDateTime localDateTime){
+    //주간 보고서 생성일 2024.09.20.
+    public static String LocalDateTimeToWeeklyReportCreatedDate(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = localDateTime.format(formatter);
         String[] split = formattedDate.split("-");
+        return split[0]+"."+split[1]+"."+split[2]+".";
+    }
+    public static String LocalDateTimeToWeeklyReportPublishedDate(LocalDateTime localDateTime, int subDay){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = localDateTime.format(formatter);
+        String[] split = formattedDate.split("-");
+        split[2] = String.valueOf (Integer.parseInt(split[2]) - subDay);
         return split[0]+"."+split[1]+"."+split[2]+".";
     }
 

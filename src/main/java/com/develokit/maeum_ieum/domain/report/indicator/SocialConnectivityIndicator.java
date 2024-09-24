@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 //사회적 연결성 지표
-public enum SocialConnectivityIndicator {
+public enum SocialConnectivityIndicator implements ReportIndicator{
     VERY_POOR("정말 별로예요"),
     POOR("별로예요"),
     FAIR("그냥 그래요"),
@@ -19,5 +19,10 @@ public enum SocialConnectivityIndicator {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getFieldName() {
+        return "socialConnectivityIndicator";
     }
 }

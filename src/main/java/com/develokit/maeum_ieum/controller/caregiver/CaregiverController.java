@@ -297,5 +297,23 @@ public class CaregiverController implements CaregiverControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(elderlyService.deleteElderly(elderlyId, loginUser.getCaregiver().getUsername())), HttpStatus.OK);
     }
 
+    //주간 보고서 정량적 & 정성적 평가 조회
+    @GetMapping("/elderlys/{elderlyId}/weekly-reports/{reportId}")
+    public ResponseEntity<?> getElderlyWeeklyReportQuantitativeAnalysis(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                                        @PathVariable(name = "reportId")Long reportId,
+                                                                        @AuthenticationPrincipal LoginUser loginUser){
+
+        return new ResponseEntity<>(ApiUtil.success(reportService.getWeeklyReportQuantitativeAnalysis(elderlyId, reportId)),HttpStatus.OK);
+    }
+
+    //월간 보고서 정량적 & 정성적 평가 조회
+    @GetMapping("/elderlys/{elderlyId}/monthly-reports/{reportId}")
+    public ResponseEntity<?> getElderlyMonthlyReportQuantitativeAnalysis(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                                        @PathVariable(name = "reportId")Long reportId,
+                                                                        @AuthenticationPrincipal LoginUser loginUser){
+
+        return new ResponseEntity<>(ApiUtil.success(reportService.getMonthlyReportQuantitativeAnalysis(elderlyId, reportId)),HttpStatus.OK);
+    }
+
 
 }

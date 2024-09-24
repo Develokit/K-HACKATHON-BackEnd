@@ -4,14 +4,13 @@ import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
+import com.develokit.maeum_ieum.domain.report.indicator.HealthStatusIndicator;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.domain.user.elderly.ElderlyRepository;
-import com.develokit.maeum_ieum.dto.report.ReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +34,62 @@ public class ReportService {
     private final ElderlyRepository elderlyRepository;
     private final Logger log = LoggerFactory.getLogger(ReportService.class);
 
+
+
+    //TODO 월간 보고서 정량적 & 정성적 평가 조회
+    public MonthlyReportAnalysisRespDto getMonthlyReportQuantitativeAnalysis(Long elderlyId, Long reportId){
+
+        //노인 검증
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //해당 월간 보고서 가져오기
+        Report reportPS = reportRepository.findById(reportId).orElseThrow(
+                () -> new CustomApiException("존재하지 않는 보고서입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //월간 보고서 아이디로 들어왔는데, 타입이 월간 보고서가 아닌 경우 서버 에러 throw
+        if(!reportPS.getReportType().equals(ReportType.MONTHLY))
+            throw new CustomApiException("서버 내부 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        try{
+            return new MonthlyReportAnalysisRespDto(reportPS, elderlyPS);
+        }catch (JsonSyntaxException e){
+            log.error("월간 보고서 정량적 분석 결과 파싱 중 오류 발생: ", e);
+            throw new CustomApiException("월간 보고서 정량적 분석 결과 파싱 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //주간 보고서 정량적 & 정성적 평가 조회
+    public WeeklyReportAnalysisRespDto getWeeklyReportQuantitativeAnalysis(Long elderlyId, Long reportId){
+
+        //노인 검증
+        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
+                () -> new CustomApiException("등록되지 않은 노인 사용자입니다.", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //해당 주간 보고서 가져오기
+        Report reportPS = reportRepository.findById(reportId).orElseThrow(
+                () -> new CustomApiException("존재하지 않는 보고서입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
+        );
+
+        //주간 보고서 아이디로 들어왔는데, 타입이 주간 보고서가 아닌 경우 서버 에러 throw
+        if(!reportPS.getReportType().equals(ReportType.WEEKLY))
+            throw new CustomApiException("서버 내부 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        try{
+            return new WeeklyReportAnalysisRespDto(reportPS, elderlyPS);
+        }catch (JsonSyntaxException e){
+            log.error("주간 보고서 정량적 분석 결과 파싱 중 오류 발생: ", e);
+            throw new CustomApiException("주간 보고서 정량적 분석 결과 파싱 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
     //보고서 메모 작성하는 기능
     @Transactional
     public ReportMemoCreateRespDto createReportMemo(ReportMemoCreateReqDto reportMemoCreateReqDto, Long elderlyId, Long reportId){
@@ -55,10 +110,6 @@ public class ReportService {
 
         return new ReportMemoCreateRespDto(reportPS);
     }
-
-
-
-
 
 
     //노인 사용자의 발행된 전체 주간 보고서 내역 보내기
@@ -114,11 +165,12 @@ public class ReportService {
 
     //지표에 따른 보고서 생성하기
     @Transactional
-    public void generateReportContent(Report report){
+    public void generateReportContent(Report report) throws JsonProcessingException {
 
         //어쩌구저쩌구
         report.setQualitativeAnalysis("정성적 보고서 분석 결과");
-        report.setQuantitativeAnalysis("정량적 보고서 분석 결과");
+
+        report.setQuantitativeAnalysis(HealthStatusIndicator.GOOD, "유우시군 건강 상태 사이코🤍");
 
     }
 

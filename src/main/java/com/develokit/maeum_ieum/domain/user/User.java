@@ -43,7 +43,7 @@ public abstract class User extends BaseEntity {
         this.role = role;
     }
 
-    protected void updateCommonInfo(String name, String gender, String Organization, String birthDate, String Contact){
+    protected void updateCommonInfo(String name, String gender, String organization, String birthDate, String contact){
         if(name != null) this.name = name;
         if(gender != null) this.gender = Gender.valueOf(gender);
         if(organization!=null) this.organization = organization;

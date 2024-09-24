@@ -74,7 +74,7 @@ class ElderlyServiceTest extends DummyObject {
 
         EmergencyRequest emergencyRequest = newMockEmergencyRequest(elderly, caregiver);
 
-        Report weeklyReport = newMockWeeklyReport(elderly);
+        Report weeklyReport = newMockWeeklyReport(elderly, 1L);
         Report monthlyReport = newMockMonthlyReport(elderly);
 
         List<Report> reports = Arrays.asList(weeklyReport, monthlyReport);

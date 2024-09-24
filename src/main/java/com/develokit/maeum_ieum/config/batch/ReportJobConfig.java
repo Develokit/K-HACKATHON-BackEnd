@@ -64,7 +64,7 @@ public class ReportJobConfig {
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("monthlyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("select r from Report r where r.reportType = :reportType and r.reportStatus = :reportStatus and formatdatetime(r.startDate, 'yyyy-MM-dd') = :targetDate")
+                .queryString("select r from Report r where r.reportType = :reportType and r.reportStatus = :reportStatus and date_format(r.startDate, '%Y-%m-%d') = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.MONTHLY,
                         "reportStatus", ReportStatus.PENDING,
@@ -94,7 +94,7 @@ public class ReportJobConfig {
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("weeklyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND formatdatetime(r.startDate, 'yyyy-MM-dd') = :targetDate")
+                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND date_format(r.startDate, '%Y-%m-%d') = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.WEEKLY,
                         "reportStatus", ReportStatus.PENDING,

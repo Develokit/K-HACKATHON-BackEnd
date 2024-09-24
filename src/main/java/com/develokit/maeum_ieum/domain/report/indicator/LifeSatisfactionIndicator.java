@@ -4,7 +4,7 @@ import lombok.Getter;
 
 //생활 만족도 지표
 @Getter
-public enum LifeSatisfactionIndicator {
+public enum LifeSatisfactionIndicator implements ReportIndicator {
     VERY_POOR("정말 별로예요"),
     POOR("별로예요"),
     FAIR("그냥 그래요"),
@@ -19,5 +19,10 @@ public enum LifeSatisfactionIndicator {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getFieldName() {
+        return "lifeSatisfactionIndicator";
     }
 }

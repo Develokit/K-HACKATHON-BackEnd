@@ -38,6 +38,24 @@ class CaregiverControllerTest extends DummyObject {
     @Autowired ObjectMapper om;
 
     @Test
+    @WithUserDetails(setupBefore = TestExecutionEvent.TEST_EXECUTION, value = "user6666")
+    void 월간보고서_정량적평가_조회_테스트() throws Exception{
+        //given
+
+        //when
+        ResultActions resultActions = mvc.perform(
+                get("/caregivers/elderlys/{elderlyId}/monthly-reports/quantitative/{reportId}", 34L, 71L)
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+
+        //then
+        System.out.println("responseBody = " + responseBody);
+
+    }
+
+    @Test
     public void join_test() throws Exception{
         //given
         JoinReqDto joinReqDto = new JoinReqDto();

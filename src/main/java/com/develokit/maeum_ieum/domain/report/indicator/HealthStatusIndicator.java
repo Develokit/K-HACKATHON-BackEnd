@@ -4,7 +4,8 @@ import lombok.Getter;
 
 //건강 상태 지표
 @Getter
-public enum HealthStatusIndicator {
+public enum HealthStatusIndicator implements ReportIndicator{
+
     VERY_POOR("정말 별로예요"),
     POOR("별로예요"),
     FAIR("그냥 그래요"),
@@ -13,11 +14,15 @@ public enum HealthStatusIndicator {
 
     private final String description;
 
+
+
+
     HealthStatusIndicator(String description) {
         this.description = description;
     }
 
-    public String getDescription() {
-        return description;
+    @Override
+    public String getFieldName() {
+        return "healthStatusIndicator";
     }
 }

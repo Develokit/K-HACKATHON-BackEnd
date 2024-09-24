@@ -2,13 +2,7 @@ package com.develokit.maeum_ieum.controller.caregiver;
 
 import com.develokit.maeum_ieum.config.jwt.RequireAuth;
 import com.develokit.maeum_ieum.config.loginUser.LoginUser;
-import com.develokit.maeum_ieum.dto.caregiver.ReqDto;
-import com.develokit.maeum_ieum.dto.caregiver.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.assistant.RespDto.CreateAssistantRespDto;
-import com.develokit.maeum_ieum.service.AssistantService;
-import com.develokit.maeum_ieum.service.CaregiverService;
-import com.develokit.maeum_ieum.util.ApiUtil;
-import com.develokit.maeum_ieum.util.api.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -19,13 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 
@@ -288,4 +280,25 @@ public interface CaregiverControllerDocs {
     })
     ResponseEntity<?> deleteElderly(@PathVariable(name = "elderlyId")Long elderlyId,
                                     @AuthenticationPrincipal LoginUser loginUser) throws MalformedURLException;
+
+    @Operation(summary = "노인 주간 보고서 분석 결과 페이지 조회 ", description = "노인 주간 보고서 분석 결과 페이지 조회 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = WeeklyReportAnalysisRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = WeeklyReportAnalysisRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = WeeklyReportAnalysisRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> getElderlyWeeklyReportQuantitativeAnalysis(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                                 @PathVariable(name = "reportId")Long reportId,
+                                                                 @AuthenticationPrincipal LoginUser loginUser);
+
+
+    @Operation(summary = "노인 월간 보고서 분석 결과 페이지 조회 ", description = "노인 월간 보고서 분석 결과 페이지 조회 시 요청: jwt 토큰 사용")
+    @ApiResponses( value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공", content = @Content(schema = @Schema(implementation = MonthlyReportAnalysisRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "토큰 기간 만료", content = @Content(schema = @Schema(implementation = MonthlyReportAnalysisRespDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR", content = @Content(schema = @Schema(implementation = MonthlyReportAnalysisRespDto.class), mediaType = "application/json")),
+    })
+    ResponseEntity<?> getElderlyMonthlyReportQuantitativeAnalysis(@PathVariable(name = "elderlyId")Long elderlyId,
+                                                                  @PathVariable(name = "reportId")Long reportId,
+                                                                  @AuthenticationPrincipal LoginUser loginUser);
 }

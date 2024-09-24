@@ -1,7 +1,7 @@
 package com.develokit.maeum_ieum.domain.report.indicator;
 
 //필요 지원 지표
-public enum SupportNeedsIndicator {
+public enum SupportNeedsIndicator implements ReportIndicator {
     VERY_POOR("아주 필요해요"),
     POOR("필요해요"),
     FAIR("보통이예요"),
@@ -16,5 +16,10 @@ public enum SupportNeedsIndicator {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getFieldName() {
+        return "supportNeedsIndicator";
     }
 }

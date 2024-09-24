@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 //심리적 안정 지표
 
-public enum PsychologicalStabilityIndicator {
+public enum PsychologicalStabilityIndicator implements ReportIndicator{
     VERY_POOR("정말 별로예요"),
     POOR("별로예요"),
     FAIR("그냥 그래요"),
@@ -20,5 +20,10 @@ public enum PsychologicalStabilityIndicator {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getFieldName() {
+        return "psychologicalStabilityIndicator";
     }
 }
