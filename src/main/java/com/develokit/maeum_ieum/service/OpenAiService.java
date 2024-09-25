@@ -39,7 +39,8 @@ public class OpenAiService {
     private final ThreadFeignClient threadFeignClient;
     private final GptWebClient gptWebClient;
     private final GptFeignClient gptFeignClient;
-    private final String MODEL = "gpt-4o";
+    private final String MODEL = "gpt-4o-mini";
+    private final String CHAT_MODEL = "gpt-3.5-turbo";
     private final int MAX_TOKENS = 400;
 
     private final String SYSTEM_PROMPT =
@@ -120,7 +121,7 @@ public class OpenAiService {
     public Mono<AssistantMandatoryRuleRespDto> createGptMessage(AssistantMandatoryRuleReqDto assistantMandatoryRuleReqDto){
         try{
            return gptWebClient.createGptMessage(new CreateGptMessageReqDto(
-                    MODEL,
+                    CHAT_MODEL,
                     new MessageDto(SYSTEM_PROMPT, "system"),
                     new MessageDto(assistantMandatoryRuleReqDto.getContent() + USER_PROMPT_SUFFIX, "user"),
                    MAX_TOKENS

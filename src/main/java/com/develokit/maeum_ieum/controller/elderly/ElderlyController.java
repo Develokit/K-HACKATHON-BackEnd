@@ -124,17 +124,17 @@ public class ElderlyController implements ElderlyControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.createEmergencyRequest(elderlyId, caregiverId, emergencyRequestCreateReqDto)), HttpStatus.CREATED);
     }
 
-    @PostMapping("/reports")
-    public Mono<?> createReports(){
-        return reportService.generate()
-                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
-    }
-
-    @PostMapping("/reports/m")
-    public Mono<?> createMonthlyReports(){
-        return reportService.generateMonthly()
-                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
-    }
+//    @PostMapping("/reports")
+//    public Mono<?> createReports(){
+//        return reportService.generate()
+//                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
+//    }
+//
+//    @PostMapping("/reports/m")
+//    public Mono<?> createMonthlyReports(){
+//        return reportService.generateMonthly()
+//                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
+//    }
 
 
 
