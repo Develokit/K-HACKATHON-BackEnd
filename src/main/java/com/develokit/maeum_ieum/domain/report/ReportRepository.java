@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -57,8 +58,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("elderly") Elderly elderly,
             @Param("reportType") ReportType reportType,
             @Param("reportStatus") ReportStatus reportStatus,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r " +
             "WHERE r.elderly = :elderly " +
@@ -69,15 +70,24 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("elderly") Elderly elderly,
             @Param("reportType") ReportType reportType,
             @Param("reportStatus") ReportStatus reportStatus,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 
     List<Report> findByElderly(Elderly eldelry);
 
-
-//    @Modifying
-//    @Query("DELETE FROM Report r WHERE r.elderly = :elderly")
-//    void deleteAllByElderly(@Param("elderly") Elderly elderly);
+    @Query("SELECT r FROM Report r " +
+            "WHERE r.elderly = :elderly " +
+            "and r.reportType = :reportType " +
+            "AND r.reportStatus = :reportStatus " +
+            "AND r.startDate >= :startOfMonth " +
+            "AND r.startDate < :startOfNextMonth")
+    List<Report> findByReportTypeAndReportStatusAndYearAndMonth(
+            @Param("elderly") Elderly elderly,
+            @Param("reportType") ReportType reportType,
+            @Param("reportStatus") ReportStatus reportStatus,
+            @Param("startOfMonth") LocalDate startOfMonth,
+            @Param("startOfNextMonth") LocalDate startOfNextMonth
+    );
 
     @Modifying
     @Query("DELETE FROM Report r WHERE r.elderly = :elderly")

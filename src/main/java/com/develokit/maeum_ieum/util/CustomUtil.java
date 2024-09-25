@@ -12,6 +12,10 @@ import java.time.format.DateTimeFormatter;
 
 public class CustomUtil {
 
+    public static LocalDate getStartOfMonth(LocalDate startDate) {
+        return startDate.withDayOfMonth(1);
+    }
+
     //긴급 알림 내역 화면에 나갈 때 사용
     public static String convertToRelativeTimeString(LocalDateTime localDateTime){
         Duration duration = Duration.between(localDateTime, LocalDateTime.now());
@@ -43,6 +47,13 @@ public class CustomUtil {
         String[] split = formattedDate.split("-");
         return split[0]+"."+split[1]+"."+split[2]+".";
     }
+
+    public static String LocalDateToWeeklyReportCreatedDate(LocalDate localDateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = localDateTime.format(formatter);
+        String[] split = formattedDate.split("-");
+        return split[0]+"."+split[1]+"."+split[2]+".";
+    }
     public static String LocalDateTimeToWeeklyReportPublishedDate(LocalDateTime localDateTime, int subDay){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = localDateTime.format(formatter);
@@ -54,6 +65,12 @@ public class CustomUtil {
     public static String LocalDateTimeToMonthlyReportPublishedDate(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
         String formattedDate = localDateTime.format(formatter);
+        String[] split = formattedDate.split("-");
+        return split[0]+"."+split[1];
+    }
+    public static String LocalDateToMonthlyReportPublishedDate(LocalDate localDate){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        String formattedDate = localDate.format(formatter);
         String[] split = formattedDate.split("-");
         return split[0]+"."+split[1];
     }

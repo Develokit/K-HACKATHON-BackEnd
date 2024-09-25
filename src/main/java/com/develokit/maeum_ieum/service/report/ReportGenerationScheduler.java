@@ -25,21 +25,22 @@ public class ReportGenerationScheduler {
 
     private final Logger log = LoggerFactory.getLogger(ReportGenerationScheduler.class);
 
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행 (보고서 분석 결과 기록)
+    @Scheduled(cron = "0 5 0 * * *") // 매일 자정 5분 후에 실행하도록
     public void runReportGenerationJob() throws Exception {
         log.info("스케줄러 시작");
 
-        LocalDateTime today = LocalDateTime.now();
-        log.info("현재 날짜: {}", today);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+        LocalDate yesterday = today.minusDays(1);
 
+        log.info("현재 날짜: {}, 어제 날짜: {}", today, yesterday);
 
+        // 보고서 분석 배치 작업 시작 (어제 날짜 기준)
+        runReportGenerationJob(yesterday);
+
+        // 작업 종료 후 빈 보고서 생성 (오늘 날짜 기준)
         reportService.createWeeklyEmptyReports(today);
         reportService.createMonthlyEmptyReports(today);
-
-
-        LocalDate todayLocalDate = today.toLocalDate();
-        log.info("배치: 스케줄러 today LocalDate로 전환" + todayLocalDate);
-        runReportGenerationJob(todayLocalDate);
     }
 
 

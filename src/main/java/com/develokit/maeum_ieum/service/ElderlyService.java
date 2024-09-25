@@ -309,15 +309,15 @@ public class ElderlyService {
                     .reportStatus(ReportStatus.PENDING)
                     .elderly(elderlyPS)
                     .reportType(ReportType.WEEKLY)
-                    .startDate(LocalDateTime.now())
+                    .startDate(LocalDate.now())
                     .reportDay(DayOfWeek.valueOf(reportDay))
                     .build();
 
             Report monthlyreport = Report.builder()
                     .reportStatus(ReportStatus.PENDING)
                     .elderly(elderlyPS)
-                    .reportType(ReportType.WEEKLY)
-                    .startDate(LocalDateTime.now())
+                    .reportType(ReportType.MONTHLY)
+                    .startDate(LocalDate.now())
                     .reportDay(DayOfWeek.valueOf(reportDay))
                     .build();
 

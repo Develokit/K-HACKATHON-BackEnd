@@ -1,8 +1,11 @@
 package com.develokit.maeum_ieum.domain.user.elderly;
 
 import com.develokit.maeum_ieum.domain.assistant.Assistant;
+import com.develokit.maeum_ieum.domain.report.Report;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.DayOfWeek;
@@ -21,4 +24,5 @@ public interface ElderlyRepository extends JpaRepository<Elderly, Long> {
 
 
     Optional<Elderly> findByAccessCode(String accessCode);
+
 }

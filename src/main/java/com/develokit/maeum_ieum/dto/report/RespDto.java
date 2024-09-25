@@ -98,7 +98,7 @@ public class RespDto {
         public MonthlyReportAnalysisRespDto(Report report, Elderly elderly){
             this.elderlyName = elderly.getName();
             this.qualitativeAnalysis = report.getQualitativeAnalysis();
-            this.startDate = CustomUtil.LocalDateTimeToMonthlyReportPublishedDate(report.getStartDate());
+            this.startDate = CustomUtil.LocalDateToMonthlyReportPublishedDate(report.getStartDate());
             this.memo = report.getMemo();
             this.healthStatus = report.getHealthStatusIndicator().getDescription();
             this.activityLevel = report.getActivityLevelIndicator().getDescription();
@@ -171,7 +171,7 @@ public class RespDto {
             this.elderlyName = elderly.getName();
             this.qualitativeAnalysis = report.getQualitativeAnalysis();
             this.reportDay = report.getReportDay()==null?null:CustomUtil.DayOfWeekToString(report.getReportDay()); //(수)
-            this.startDate = CustomUtil.LocalDateTimeToWeeklyReportCreatedDate(report.getStartDate());
+            this.startDate = CustomUtil.LocalDateToWeeklyReportCreatedDate(report.getStartDate());
             this.endDate = CustomUtil.LocalDateTimeToWeeklyReportPublishedDate(report.getEndDate(), 1); //일자를 하나 차감해야 함
             this.memo = report.getMemo();
             this.healthStatus = report.getHealthStatusIndicator().getDescription();
@@ -221,7 +221,7 @@ public class RespDto {
         public static class MonthlyReportDto{
             public MonthlyReportDto(Report report) {
                 this.reportId = report.getId();
-                this.startDate = CustomUtil.LocalDateTimeToMonthlyReportPublishedDate(report.getStartDate()); //2024.07
+                this.startDate = CustomUtil.LocalDateToMonthlyReportPublishedDate(report.getStartDate()); //2024.07
             }
 
             @Schema(description = "월간 보고서 아이디")
@@ -251,7 +251,7 @@ public class RespDto {
         public static class WeeklyReportDto{
             public WeeklyReportDto(Report report) {
                 this.reportId = report.getId();
-                this.startDate = CustomUtil.LocalDateTimeToWeeklyReportCreatedDate(report.getStartDate()); //2024.07.07.
+                this.startDate = CustomUtil.LocalDateToWeeklyReportCreatedDate(report.getStartDate()); //2024.07.07.
                 this.reportDay = report.getReportDay()==null?null:CustomUtil.DayOfWeekToString(report.getReportDay()); //(수)
             }
 

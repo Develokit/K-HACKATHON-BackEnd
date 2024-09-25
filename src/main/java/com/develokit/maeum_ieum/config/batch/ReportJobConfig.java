@@ -58,13 +58,15 @@ public class ReportJobConfig {
     @StepScope
     @Qualifier("monthlyReportReader")
     public JpaPagingItemReader<Report> monthlyReportReader(@Value("#{jobParameters['date']}") String dateString) {
-        LocalDate today = LocalDate.parse(dateString);
-        LocalDate oneMonthAgo = today.minusMonths(1);
+        LocalDate targetDate = LocalDate.parse(dateString);
+        LocalDate oneMonthAgo = targetDate.minusMonths(1);
+
+        log.info("Querying monthly reports created on: {}", oneMonthAgo);
 
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("monthlyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("select r from Report r where r.reportType = :reportType and r.reportStatus = :reportStatus and date_format(r.startDate, '%Y-%m-%d') = :targetDate")
+                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.startDate = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.MONTHLY,
                         "reportStatus", ReportStatus.PENDING,
@@ -81,20 +83,15 @@ public class ReportJobConfig {
     public JpaPagingItemReader<Report> weeklyReportReader(@Value("#{jobParameters['date']}") String dateString) {
         log.info("weeklyReportReader called with dateString: {}", dateString);
 
-        LocalDate today;
-        try {
-            today = LocalDate.parse(dateString);
-        } catch (DateTimeParseException e) {
-            log.error("날짜 파싱 과정 중 오류 발생: {}", dateString, e);
-            throw new IllegalArgumentException("Invalid date format. Expected format: YYYY-MM-DD", e);
-        }
-        LocalDate oneWeekAgo = today.minusWeeks(1);
-        log.info("Querying reports from {} to {}", oneWeekAgo, today);
+        LocalDate targetDate = LocalDate.parse(dateString);
+        LocalDate oneWeekAgo = targetDate.minusWeeks(1);
+
+        log.info("Querying weekly reports created on: {}", oneWeekAgo);
 
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("weeklyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND date_format(r.startDate, '%Y-%m-%d') = :targetDate")
+                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.startDate = :targetDate")
                 .parameterValues(Map.of(
                         "reportType", ReportType.WEEKLY,
                         "reportStatus", ReportStatus.PENDING,

@@ -27,6 +27,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DummyObject {
+    protected Report emptyReport(Elderly elderly, ReportType reportType){
+        return Report.builder()
+                .elderly(elderly)
+                .reportType(reportType)
+                .reportStatus(ReportStatus.PENDING)
+                .build();
+    }
 
     protected EmergencyRequest mockEmergencyRequest(Elderly elderly, Caregiver caregiver){
         return EmergencyRequest.builder().elderly(elderly).caregiver(caregiver).emergencyType(EmergencyType.CAREGIVER_NOTIFY).build();
@@ -35,7 +42,7 @@ public class DummyObject {
     protected Report mockMonthlyReport(Elderly elderly) throws JsonProcessingException {
 
         LocalDateTime endDate = LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusMonths(1);
+        LocalDate startDate = endDate.minusMonths(1).toLocalDate();
 
         Report report = Report.builder()
                 .reportType(ReportType.MONTHLY)
@@ -66,7 +73,7 @@ public class DummyObject {
     protected Report mockWeeklyReport(Elderly elderly) throws JsonProcessingException {
 
         LocalDateTime endDate= LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusWeeks(1);
+        LocalDate startDate = endDate.minusWeeks(1).toLocalDate();
 
         Report report = Report.builder()
                 .reportType(ReportType.WEEKLY)

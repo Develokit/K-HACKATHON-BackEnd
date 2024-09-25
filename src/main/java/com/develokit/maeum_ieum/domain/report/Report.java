@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class Report extends BaseEntity {
     @Column(nullable = false)
     private ReportType reportType; //월간 보고서/주간 보고서
 
-    private LocalDateTime startDate; // 보고서 기록 시작 일
+    private LocalDate startDate; // 보고서 기록 시작 일
     private LocalDateTime endDate;// 보고서 기록 종료 일
 
     @Type(JsonType.class)
@@ -86,7 +87,7 @@ public class Report extends BaseEntity {
 
 
     @Builder
-    public Report(Long id, Elderly elderly, ReportType reportType, LocalDateTime startDate, LocalDateTime endDate, String quantitativeAnalysis, String qualitativeAnalysis, String memo, ReportStatus reportStatus, DayOfWeek reportDay, HealthStatusIndicator healthStatusIndicator, ActivityLevelIndicator activityLevelIndicator, CognitiveFunctionIndicator cognitiveFunctionIndicator, LifeSatisfactionIndicator lifeSatisfactionIndicator, PsychologicalStabilityIndicator psychologicalStabilityIndicator, SocialConnectivityIndicator socialConnectivityIndicator, SupportNeedsIndicator supportNeedsIndicator) {
+    public Report(Long id, Elderly elderly, ReportType reportType, LocalDate startDate, LocalDateTime endDate, String quantitativeAnalysis, String qualitativeAnalysis, String memo, ReportStatus reportStatus, DayOfWeek reportDay, HealthStatusIndicator healthStatusIndicator, ActivityLevelIndicator activityLevelIndicator, CognitiveFunctionIndicator cognitiveFunctionIndicator, LifeSatisfactionIndicator lifeSatisfactionIndicator, PsychologicalStabilityIndicator psychologicalStabilityIndicator, SocialConnectivityIndicator socialConnectivityIndicator, SupportNeedsIndicator supportNeedsIndicator) {
         this.id = id;
         this.elderly = elderly;
         this.reportType = reportType;
@@ -182,7 +183,7 @@ public class Report extends BaseEntity {
     }
 
 
-    public void modifyStartDateAndReportDay(LocalDateTime localDateTime, DayOfWeek dayOfWeek){
+    public void modifyStartDateAndReportDay(LocalDate localDateTime, DayOfWeek dayOfWeek){
         this.startDate = localDateTime;
         this.reportDay = dayOfWeek;
     }
@@ -200,7 +201,7 @@ public class Report extends BaseEntity {
         this.memo = memo;
     }
 
-    public Report(Elderly elderly, LocalDateTime startDate, LocalDateTime endDate, ReportType reportType){
+    public Report(Elderly elderly, LocalDate startDate, LocalDateTime endDate, ReportType reportType){
         this.elderly = elderly;
         this.startDate = startDate;
         this.endDate = endDate;

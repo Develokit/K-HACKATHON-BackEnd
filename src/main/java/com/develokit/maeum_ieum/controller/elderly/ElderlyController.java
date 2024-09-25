@@ -7,6 +7,7 @@ import com.develokit.maeum_ieum.service.AssistantService;
 import com.develokit.maeum_ieum.service.ElderlyService;
 import com.develokit.maeum_ieum.service.EmergencyRequestService;
 import com.develokit.maeum_ieum.service.MessageService;
+import com.develokit.maeum_ieum.service.report.ReportService;
 import com.develokit.maeum_ieum.util.ApiUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -36,6 +37,7 @@ public class ElderlyController implements ElderlyControllerDocs {
     private final MessageService messageService;
     private final AssistantService assistantService;
     private final EmergencyRequestService emergencyRequestService;
+    private final ReportService reportService;
 
     //접속 코드 확인
     @GetMapping("/access-code/{accessCode}")
@@ -122,6 +124,17 @@ public class ElderlyController implements ElderlyControllerDocs {
         return new ResponseEntity<>(ApiUtil.success(emergencyRequestService.createEmergencyRequest(elderlyId, caregiverId, emergencyRequestCreateReqDto)), HttpStatus.CREATED);
     }
 
+    @PostMapping("/reports")
+    public Mono<?> createReports(){
+        return reportService.generate()
+                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
+    }
+
+    @PostMapping("/reports/m")
+    public Mono<?> createMonthlyReports(){
+        return reportService.generateMonthly()
+                .map(result -> new ResponseEntity<>(ApiUtil.success(result),HttpStatus.CREATED));
+    }
 
 
 

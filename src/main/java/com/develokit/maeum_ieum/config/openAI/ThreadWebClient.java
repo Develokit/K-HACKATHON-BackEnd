@@ -146,6 +146,7 @@ public class ThreadWebClient {
 
     }
 
+
     //유저 메시지 저장 -> 메시지 생성 -> 비스트림 런 작업 처리 (전체 답변 반환)
     @Transactional
     public Mono<CreateMessageRespDto> createMessageAndRun(String threadId, CreateMessageReqDto createMessageReqDto, CreateRunReqDto createRunReqDto, Elderly elderly){
