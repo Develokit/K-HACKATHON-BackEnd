@@ -17,12 +17,12 @@ import java.util.Optional;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
+
     @Query("select r from Report r " +
             "where r.elderly = :elderly " +
             "and r.reportStatus = :reportStatus " +
             "and r.reportType = :reportType " +
-            "and r.id <= :cursor " +
-            "order by r.id desc")
+            "and r.id <= :cursor ")
     List<Report> findWeeklyReportByElderly(@Param("elderly") Elderly elderly,
                                            @Param("reportStatus")ReportStatus reportStatus,
                                            @Param("reportType")ReportType reportType,
@@ -33,8 +33,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "where r.elderly = :elderly " +
             "and r.reportStatus = :reportStatus " +
             "and r.reportType = :reportType " +
-            "and r.id <= :cursor " +
-            "order by r.id desc")
+            "and r.id <= :cursor ")
     List<Report> findMonthlyReportByElderly(@Param("elderly") Elderly elderly,
                                             @Param("reportStatus")ReportStatus reportStatus,
                                             @Param("reportType")ReportType reportType,
@@ -43,8 +42,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query("select count(r) from Report r where r.elderly =: elderly and r.startDate = : startDate")
     int findByStartDate(@Param(value = "elderly")Elderly elderly, @Param(value = "startDate")LocalDateTime startDate);
 
-    @Query("select r from Report r where r.elderly = :elderly order by r.startDate desc limit 1")
-    Optional<Report> findLatestByElderly(@Param("elderly")Elderly elderly );
+    @Query("select r from Report r where r.elderly = :elderly and r.reportStatus = :reportStatus order by r.startDate desc")
+    List<Report> findLatestByElderly(@Param("elderly")Elderly elderly, @Param("reportStatus")ReportStatus reportStatus);
 
     @Query("SELECT r FROM Report r WHERE r.startDate <= :date AND r.reportStatus = :status")
     List<Report> findReportsReadyForProcessing(@Param("date") LocalDateTime date, @Param("status") ReportStatus status);
@@ -53,25 +52,21 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "WHERE r.elderly = :elderly " +
             "AND r.reportType = :reportType " +
             "AND r.reportStatus = :reportStatus " +
-            "AND r.startDate BETWEEN :startDate AND :endDate")
+            "AND r.reportDay = :reportDay")
     boolean existsByElderlyAndReportTypeAndReportStatusAndStartDateInLastWeek(
             @Param("elderly") Elderly elderly,
             @Param("reportType") ReportType reportType,
             @Param("reportStatus") ReportStatus reportStatus,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+            @Param("reportDay") DayOfWeek reportDay);
 
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r " +
             "WHERE r.elderly = :elderly " +
             "AND r.reportType = :reportType " +
-            "AND r.reportStatus = :reportStatus " +
-            "AND r.startDate BETWEEN :startDate AND :endDate")
+            "AND r.reportStatus = :reportStatus ")
     boolean existsByElderlyAndReportTypeAndReportStatusAndStartDateGreaterThanEqual(
             @Param("elderly") Elderly elderly,
             @Param("reportType") ReportType reportType,
-            @Param("reportStatus") ReportStatus reportStatus,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+            @Param("reportStatus") ReportStatus reportStatus);
 
     List<Report> findByElderly(Elderly eldelry);
 

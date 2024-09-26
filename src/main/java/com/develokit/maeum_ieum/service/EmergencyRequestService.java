@@ -55,6 +55,9 @@ public class EmergencyRequestService {
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
+        if(elderlyPS.getCaregiver() != caregiverPS)
+            throw new CustomApiException("담당 요양사가 아닌 요양사를 호출했습니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN);
+
         //알림 내역 저장
         EmergencyRequest emergencyRequestPS = emergencyRequestRepository.save(EmergencyRequest.builder()
                 .emergencyType(EmergencyType.fromString(emergencyRequestCreateReqDto.getEmergencyType()))
@@ -70,6 +73,7 @@ public class EmergencyRequestService {
 
     //알림 화면 조회
     public EmergencyRequestListRespDto getEmergencyRequestList(String username, int page, int size){
+
         //요양사 조회
         Caregiver caregiverPS = careGiverRepository.findByUsername(username).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)

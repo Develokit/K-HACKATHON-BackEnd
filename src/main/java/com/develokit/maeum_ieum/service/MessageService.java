@@ -33,11 +33,18 @@ public class MessageService {
 
     public Mono<CreateMessageRespDto> getNonStreamMessage(CreateStreamMessageReqDto createStreamMessageReqDto, Long elderlyId){
         return Mono.fromCallable(() ->
-                elderlyRepository.findById(elderlyId))
+                elderlyRepository.findByIdWithAssistant(elderlyId))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(elderlyOptional -> elderlyOptional
                         .map(Mono::just)
                         .orElseThrow(() -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)))
+                .flatMap(elderlyPS -> {
+                    if(elderlyPS.getAssistant() == null)
+                        return Mono.error(new CustomApiException("AI 어시스턴트가 등록되지 않은 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND));
+                    else if(!elderlyPS.getAssistant().getOpenAiAssistantId().equals(createStreamMessageReqDto.getOpenAiAssistantId()))
+                        return Mono.error(new CustomApiException("해당 사용자의 AI 어시스턴트가 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN));
+                    else return Mono.just(elderlyPS);
+                })
                 .flatMap(elderlyPS ->{
                     CreateMessageReqDto createMessageReqDto = new CreateMessageReqDto(
                             "user",
@@ -48,9 +55,6 @@ public class MessageService {
                             true
                     );
 
-                    log.info("Creating message with DTO: {}", createMessageReqDto.getContent());
-                    log.info("Creating run with DTO: {}", createRunReqDto.getAssistantId());
-
                     return threadWebClient.createMessageAndRun(
                             createStreamMessageReqDto.getThreadId(),
                             createMessageReqDto,
@@ -58,22 +62,26 @@ public class MessageService {
                             elderlyPS
                     );
                 })
-                .doOnError(e -> log.error("비스트림런 유저 답변 생성 중 오류 발생: ", e))
-                .onErrorResume(e -> {
-                    log.error(e.getMessage());
-                    throw new CustomApiException("비스트림런 유저 답변 생성 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
-                });
+                .doOnError(e -> log.error("비스트림런 유저 답변 생성 중 오류 발생: ", e));
     }
 
 
     public Flux<CreateStreamMessageRespDto> getStreamMessage(CreateStreamMessageReqDto createStreamMessageReqDto, Long elderlyId){
 
         return Mono.fromCallable(() ->
-                        elderlyRepository.findById(elderlyId).orElseThrow(
-                                () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
-
-                        ))
+                        elderlyRepository.findByIdWithAssistant(elderlyId))
                         .subscribeOn(Schedulers.boundedElastic()) //노인 사용자 조회 블로킹 작업 비동기로 수행
+                        .flatMap(elderlyOptional -> elderlyOptional
+                                .map(Mono::just)
+                                .orElseThrow(() -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND))
+                        )
+                        .flatMap(elderlyPS -> {
+                            if(elderlyPS.getAssistant() == null)
+                                return Mono.error(new CustomApiException("AI 어시스턴트가 등록되지 않은 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND));
+                            else if(!elderlyPS.getAssistant().getOpenAiAssistantId().equals(createStreamMessageReqDto.getOpenAiAssistantId()))
+                                return Mono.error(new CustomApiException("해당 사용자의 AI 어시스턴트가 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN));
+                            else return Mono.just(elderlyPS);
+                        })
                         .flatMapMany(elderlyPS ->
                                 threadWebClient.createMessageAndStreamRun(
                                         createStreamMessageReqDto.getThreadId(),
@@ -94,13 +102,18 @@ public class MessageService {
     public Mono<CreateAudioRespDto> getVoiceMessage(CreateAudioReqDto createAudioReqDto, Long elderlyId){
 
         return Mono.fromCallable(() ->
-
-                        elderlyRepository.findById(elderlyId).orElseThrow(
-                                () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
-
-                        )
-                )
+                        elderlyRepository.findByIdWithAssistant(elderlyId))
                 .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(elderlyOptional -> elderlyOptional
+                        .map(Mono::just)
+                        .orElseThrow(() -> new CustomApiException("등록되지 않은 사용자입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)))
+                .flatMap(elderlyPS -> {
+                    if(elderlyPS.getAssistant() == null)
+                        return Mono.error(new CustomApiException("AI 어시스턴트가 등록되지 않은 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND));
+                    else if(!elderlyPS.getAssistant().getOpenAiAssistantId().equals(createAudioReqDto.getOpenAiAssistantId()))
+                        return Mono.error(new CustomApiException("해당 사용자의 AI 어시스턴트가 아닙니다", HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN));
+                    else return Mono.just(elderlyPS);
+                })
                 .flatMap( elderlyPS ->
                         threadWebClient.createMessageAndRunForAudio(
                         createAudioReqDto.getThreadId(),
@@ -122,27 +135,6 @@ public class MessageService {
                     log.error(e.getMessage());
                     throw new CustomApiException("오디오 메시지 처리 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 });
-//
-//        Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
-//                () -> new CustomApiException("등록되지 않은 사용자 입니다. 담당 요양사에게 문의해주세요", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
-//        );
-//
-//        return threadWebClient.createMessageAndRun(
-//                createAudioReqDto.getThreadId(),
-//                new CreateMessageReqDto(
-//                        "user",
-//                        createAudioReqDto.getContent()
-//                ),
-//                new CreateRunReqDto(
-//                        createAudioReqDto.getOpenAiAssistantId(),
-//                        true
-//                ),
-//                new AudioRequestDto(
-//                        "tts-1",
-//                        createAudioReqDto.getGender().equals("FEMALE")?"nova":"onyx"
-//                ),
-//                elderlyPS
-//        );
     }
 
 

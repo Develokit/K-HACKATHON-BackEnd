@@ -290,21 +290,26 @@ public class ElderlyService {
 
 
     //보고서 날짜 수정 -> 날짜를 수정한 localDateTime을 보고서의 startDate으로 삼아서 빈 보고서 생성
-    //@Transactional
+
     public ElderlyReportDayModifyRespDto modifyReportDay(Long elderlyId, ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto){
         Elderly elderlyPS = elderlyRepository.findById(elderlyId).orElseThrow(
                 () -> new CustomApiException("등록되지 않은 노인 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
         String reportDay = elderlyReportDayModifyReqDto.getReportDay();
 
+        //노인 보고서 발행 요일 설정
         elderlyPS.modifyReportDay(DayOfWeek.valueOf(reportDay));
 
         //TODO 생성된 주간 보고서와 월간 보고서가 있는지 확인
         //보고서 날짜 수정 전에 기록을 위해 생성된 빈 보고서가 있는지 확인
-        Optional<Report> reportOP = reportRepository.findLatestByElderly(elderlyPS);
+        List<Report> reportList = reportRepository.findLatestByElderly(elderlyPS, ReportStatus.PENDING);
 
+        for (Report report : reportList) {
+            System.out.println("report.getReportType() = " + report.getReportType());
+            System.out.println("report.getReportStatus() = " + report.getReportStatus());
+        }
 
-        if(reportOP.isEmpty()){ //비어 있으면, 즉 최초로 보고서 생성 날을 지정한 경우이면 바로 보고서 생성
+        if(reportList.isEmpty()){ //비어 있으면, 즉 최초로 보고서 생성 날을 지정한 경우이면 바로 보고서 생성
             Report weeklyreport = Report.builder()
                     .reportStatus(ReportStatus.PENDING)
                     .elderly(elderlyPS)
@@ -325,10 +330,8 @@ public class ElderlyService {
             reportRepository.save(monthlyreport);
         }
         else{ //보고서가 있다면, 시작 날짜와 발행 요일을 현재 시각과 reportDay로 수정
-
-            //TODO DB에서 PENDING 상태의 보고서 끌고와서 수정
-
-            //reportOP.get().modifyStartDateAndReportDay(LocalDateTime.now(), DayOfWeek.valueOf(reportDay));
+            LocalDate today = LocalDate.now();
+            reportList.forEach(report -> report.modifyStartDateAndReportDay(DayOfWeek.valueOf(reportDay)));
         }
         return new ElderlyReportDayModifyRespDto(elderlyPS);
     }

@@ -132,7 +132,7 @@ public class ReportService {
         if(cursor==null || cursor.equals(0L)) cursor = Long.MAX_VALUE;
 
         //limit+1만큼 조회해야 함!!!!
-        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("id").descending());
+        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("endDate").descending());
 
         List<Report> reportList = reportRepository.findWeeklyReportByElderly(elderlyPS,ReportStatus.COMPLETED, ReportType.WEEKLY, cursor, pageRequest);
 
@@ -157,7 +157,7 @@ public class ReportService {
         //초기 cursor가 설정 안되면 max_value로 설정
         if(cursor==null || cursor.equals(0L)) cursor = Long.MAX_VALUE;
 
-        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("id").descending());
+        PageRequest pageRequest = PageRequest.of(0, limit + 1, Sort.by("endDate").descending());
 
         List<Report> reportList = reportRepository.findMonthlyReportByElderly(elderlyPS, ReportStatus.COMPLETED, ReportType.MONTHLY, cursor, pageRequest);
 
@@ -200,10 +200,17 @@ public class ReportService {
 
 
         if (report.getReportType().equals(ReportType.WEEKLY)) {
-            List<Message> messageList = messageRepository.findByElderly(elderlyPS);
+            LocalDate startDate = report.getStartDate();
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime today = LocalDateTime.now();
+
+            List<Message> messageList = messageRepository.findByElderlyWithTimeZone(elderlyPS, startDateTime, today);
 
             if (messageList.isEmpty()) {
-                //대화 내역 없는 거 어떻게 처리할 지
+                //TODO 대화 내역이 없다고 집어넣기
+                report.setReportStatus(ReportStatus.COMPLETED);
+                report.updateEndDate(LocalDateTime.now());
+                return Mono.just(report);
             }
 
             return generateWeeklyReportAnalysis(report, messageList)
@@ -249,7 +256,7 @@ public class ReportService {
         List<Elderly> eligibleElderly = elderlyRepository.findByReportDay(date.getDayOfWeek());
         for (Elderly elderly : eligibleElderly) {
             if (!reportRepository.existsByElderlyAndReportTypeAndReportStatusAndStartDateInLastWeek(
-                    elderly, ReportType.WEEKLY, ReportStatus.PENDING, oneWeekAgo, date)) {
+                    elderly, ReportType.WEEKLY, ReportStatus.PENDING, date.getDayOfWeek())) {
                 Report newReport = Report.builder()
                         .elderly(elderly)
                         .reportType(ReportType.WEEKLY)
@@ -271,7 +278,7 @@ public class ReportService {
         List<Elderly> allElderly = elderlyRepository.findAll();
         for (Elderly elderly : allElderly) {
             if (!reportRepository.existsByElderlyAndReportTypeAndReportStatusAndStartDateGreaterThanEqual(
-                    elderly, ReportType.MONTHLY, ReportStatus.PENDING, oneMonthAgo, date)) {
+                    elderly, ReportType.MONTHLY, ReportStatus.PENDING)) {
                 Report newReport = Report.builder()
                         .elderly(elderly)
                         .reportType(ReportType.MONTHLY)

@@ -9,8 +9,10 @@ COPY build/libs/*.jar app.jar
 # 포트 노출
 EXPOSE 8081
 
-# 환경 변수 설정을 위한 기본값 정의 (선택사항)
+# 환경 변수 설정을 위한 기본값 정의
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+RUN ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime

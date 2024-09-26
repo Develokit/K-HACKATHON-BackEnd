@@ -169,21 +169,23 @@ public class RespDto {
 
         public WeeklyReportAnalysisRespDto(Report report, Elderly elderly){
             this.elderlyName = elderly.getName();
-            this.qualitativeAnalysis = report.getQualitativeAnalysis();
+            this.qualitativeAnalysis = report.getQualitativeAnalysis()!=null?report.getQualitativeAnalysis():"AI 어시스턴트와 대화를 진행한 이력이 없습니다";
             this.reportDay = report.getReportDay()==null?null:CustomUtil.DayOfWeekToString(report.getReportDay()); //(수)
             this.startDate = CustomUtil.LocalDateToWeeklyReportCreatedDate(report.getStartDate());
             this.endDate = CustomUtil.LocalDateTimeToWeeklyReportPublishedDate(report.getEndDate(), 1); //일자를 하나 차감해야 함
             this.memo = report.getMemo();
-            this.healthStatus = report.getHealthStatusIndicator().getDescription();
-            this.activityLevel = report.getActivityLevelIndicator().getDescription();
-            this.cognitiveFunction = report.getCognitiveFunctionIndicator().getDescription();
-            this.lifeSatisfaction = report.getLifeSatisfactionIndicator().getDescription();
-            this.psychologicalStability = report.getPsychologicalStabilityIndicator().getDescription();
-            this.socialConnectivity = report.getSocialConnectivityIndicator().getDescription();
-            this.supportNeeds = report.getSupportNeedsIndicator().getDescription();
+            this.healthStatus = report.getHealthStatusIndicator()!=null?report.getHealthStatusIndicator().getDescription():"";
+            this.activityLevel = report.getActivityLevelIndicator()!=null? report.getActivityLevelIndicator().getDescription():"";
+            this.cognitiveFunction = report.getCognitiveFunctionIndicator()!=null? report.getCognitiveFunctionIndicator().getDescription():"";
+            this.lifeSatisfaction = report.getLifeSatisfactionIndicator()!=null? report.getLifeSatisfactionIndicator().getDescription():"";
+            this.psychologicalStability = report.getPsychologicalStabilityIndicator()!=null? report.getPsychologicalStabilityIndicator().getDescription():"";
+            this.socialConnectivity = report.getSocialConnectivityIndicator()!=null? report.getSocialConnectivityIndicator().getDescription():"";
+            this.supportNeeds = report.getSupportNeedsIndicator()!=null? report.getSupportNeedsIndicator().getDescription():"";
                 // JSON 문자열을 Map으로 파싱
             try {
-                this.quantitativeAnalysis = gson.fromJson(report.getQuantitativeAnalysis(), QuantitativeAnalysis.class);
+                if(report.getQuantitativeAnalysis() != null)
+                    this.quantitativeAnalysis = gson.fromJson(report.getQuantitativeAnalysis(), QuantitativeAnalysis.class);
+                else this.qualitativeAnalysis = "AI 어시스턴트와 대화를 진행한 이력이 없습니다";
             }catch(JsonSyntaxException e){
                 log.error("JSON 파싱 중 오류 발생: 구문 오류 ", e);
             }

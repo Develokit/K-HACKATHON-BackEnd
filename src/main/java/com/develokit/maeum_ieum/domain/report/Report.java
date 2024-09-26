@@ -183,8 +183,7 @@ public class Report extends BaseEntity {
     }
 
 
-    public void modifyStartDateAndReportDay(LocalDate localDateTime, DayOfWeek dayOfWeek){
-        this.startDate = localDateTime;
+    public void modifyStartDateAndReportDay(DayOfWeek dayOfWeek){
         this.reportDay = dayOfWeek;
     }
     public void updateReportDay(DayOfWeek reportDay){this.reportDay = reportDay;}

@@ -25,4 +25,6 @@ public interface ElderlyRepository extends JpaRepository<Elderly, Long> {
 
     Optional<Elderly> findByAccessCode(String accessCode);
 
+    @Query("select e from Elderly e left join fetch e.assistant where e.id = :id")
+    Optional<Elderly> findByIdWithAssistant(@Param("id")Long id);
 }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -21,5 +22,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("delete from Message m where m.elderly = :elderly")
     int deleteAllByElderly(@Param("elderly") Elderly elderly);
 
-    List<Message> findByElderly(Elderly elderly);
+    @Query("select m from Message m where m.elderly = :elderly and m.createdDate >= :startDate and m.createdDate <= :endDate")
+    List<Message> findByElderlyWithTimeZone(@Param("elderly") Elderly elderly, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

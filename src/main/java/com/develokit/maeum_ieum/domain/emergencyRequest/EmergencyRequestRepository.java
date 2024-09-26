@@ -21,9 +21,9 @@ public interface EmergencyRequestRepository extends JpaRepository<EmergencyReque
 
 
     @Query("select er from EmergencyRequest er " +
-            "left join fetch er.caregiver c " +
-            "left join fetch er.elderly e")
-    Page<EmergencyRequest> findByCaregiver(Caregiver caregiver, Pageable pageable);
+            "left join fetch er.elderly e " +
+            "where er.caregiver = :caregiver")
+    Page<EmergencyRequest> findByCaregiver(@Param("caregiver")Caregiver caregiver, Pageable pageable);
 
     List<EmergencyRequest> findByElderly(Elderly elderly);
 

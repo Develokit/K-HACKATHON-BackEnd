@@ -225,6 +225,7 @@ public interface CaregiverControllerDocs {
     })
     ResponseEntity<?> modifyElderlyReportDay(@PathVariable(name = "elderlyId")Long elderlyId,
                                              @RequestBody@Valid ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto,
+                                             BindingResult bindingResult,
                                              @AuthenticationPrincipal LoginUser loginUser );
 
 

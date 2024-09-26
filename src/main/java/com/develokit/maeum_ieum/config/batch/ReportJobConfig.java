@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -58,8 +59,10 @@ public class ReportJobConfig {
     @StepScope
     @Qualifier("monthlyReportReader")
     public JpaPagingItemReader<Report> monthlyReportReader(@Value("#{jobParameters['date']}") String dateString) {
+
         LocalDate targetDate = LocalDate.parse(dateString);
         LocalDate oneMonthAgo = targetDate.minusMonths(1);
+
 
         log.info("Querying monthly reports created on: {}", oneMonthAgo);
 
@@ -84,18 +87,18 @@ public class ReportJobConfig {
         log.info("weeklyReportReader called with dateString: {}", dateString);
 
         LocalDate targetDate = LocalDate.parse(dateString);
-        LocalDate oneWeekAgo = targetDate.minusWeeks(1);
+        DayOfWeek reportDay = targetDate.getDayOfWeek();
 
-        log.info("Querying weekly reports created on: {}", oneWeekAgo);
+        log.info("Querying weekly reports for day: {}", reportDay);
 
         return new JpaPagingItemReaderBuilder<Report>()
                 .name("weeklyReportReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.startDate = :targetDate")
+                .queryString("SELECT r FROM Report r WHERE r.reportType = :reportType AND r.reportStatus = :reportStatus AND r.reportDay = :reportDay")
                 .parameterValues(Map.of(
                         "reportType", ReportType.WEEKLY,
                         "reportStatus", ReportStatus.PENDING,
-                        "targetDate", oneWeekAgo
+                        "reportDay", reportDay
                 ))
                 .pageSize(100)
                 .build();

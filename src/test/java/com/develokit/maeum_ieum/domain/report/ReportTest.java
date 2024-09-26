@@ -1,6 +1,7 @@
 package com.develokit.maeum_ieum.domain.report;
 
 import com.develokit.maeum_ieum.dto.report.RespDto;
+import com.develokit.maeum_ieum.service.report.IndicatorResult;
 import com.develokit.maeum_ieum.service.report.MonthlyReportAnalysisService;
 import com.develokit.maeum_ieum.service.report.WeeklyReportAnalysisService;
 import com.google.gson.Gson;

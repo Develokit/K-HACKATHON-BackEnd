@@ -249,6 +249,7 @@ public class CaregiverController implements CaregiverControllerDocs {
     @PatchMapping("/elderlys/{elderlyId}/report")
     public ResponseEntity<?> modifyElderlyReportDay(@PathVariable(name = "elderlyId")Long elderlyId,
                                                     @RequestBody@Valid ElderlyReportDayModifyReqDto elderlyReportDayModifyReqDto,
+                                                    BindingResult bindingResult,
                                                     @AuthenticationPrincipal LoginUser loginUser ){
         return new ResponseEntity<>(ApiUtil.success(elderlyService.modifyReportDay(elderlyId, elderlyReportDayModifyReqDto)), HttpStatus.OK);
     }
