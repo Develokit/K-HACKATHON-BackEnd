@@ -58,7 +58,7 @@ public class Caregiver extends User {
     }
 
     public void updateCaregiverInfo(CaregiverModifyReqDto caregiverModifyReqDto){
-        super.updateCommonInfo(caregiverModifyReqDto.getName(), caregiverModifyReqDto.getGender(), caregiverModifyReqDto.getOrganization(),
+        super.updateCaregiverInfo(caregiverModifyReqDto.getName(), caregiverModifyReqDto.getGender(), caregiverModifyReqDto.getOrganization(),
                  caregiverModifyReqDto.getBirthDate(), caregiverModifyReqDto.getContact());
     }
 

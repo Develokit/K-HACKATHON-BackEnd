@@ -1,7 +1,7 @@
 ## ERD
 
 
-<img src="img.png" width="500" height = "600"/>
+<img src="erd.png" width="500" height = "600"/>
 
 
 

@@ -134,7 +134,23 @@ public class CaregiverService {
                 () -> new CustomApiException("등록되지 않은 요양사 사용자입니다", HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND)
         );
 
+        //요양사 정보 업데이트
         caregiverPS.updateCaregiverInfo(caregiverModifyReqDto);
+
+        //소속 기관이 변경되었다면
+        if(caregiverModifyReqDto.getOrganization() != null){
+            //요양사 관리 노인 사용자 끌고오기
+            Caregiver caregiverWithElderly = careGiverRepository.findByUsernameWithElderlys(username)
+                    .orElseThrow(
+                            () -> new CustomApiException("서버 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR)
+                    );
+
+            //요양사가 소속 기관 바꾸면 관리 노인 사용자 소속 기관도 변경
+            caregiverWithElderly.getElderlyList().forEach(elderly -> {
+                elderly.updateOrganizationByElderly(caregiverModifyReqDto.getOrganization());
+            });
+
+        }
         return new CaregiverModifyRespDto(caregiverPS);
     }
 

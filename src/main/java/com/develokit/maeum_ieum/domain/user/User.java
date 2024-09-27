@@ -43,19 +43,22 @@ public abstract class User extends BaseEntity {
         this.role = role;
     }
 
-    protected void updateCommonInfo(String name, String gender, String organization, String birthDate, String contact){
+    protected void updateCaregiverInfo(String name, String gender, String organization, String birthDate, String contact){
         if(name != null) this.name = name;
         if(gender != null) this.gender = Gender.valueOf(gender);
         if(organization!=null) this.organization = organization;
         if(birthDate != null) this.birthDate = CustomUtil.StringToLocalDate(String.valueOf(birthDate));
         if(contact != null) this.contact = contact;
     }
-    protected void updateCommonInfo(String name, String gender, String birthDate, String Contact){
+    protected void updateElderlyInfo(String name, String gender, String birthDate, String contact){
         if(name != null) this.name = name;
         if(gender != null) this.gender = Gender.valueOf(gender);
-        if(organization!=null) this.organization = organization;
         if(birthDate != null) this.birthDate = CustomUtil.StringToLocalDate(String.valueOf(birthDate));
         if(contact != null) this.contact = contact;
+    }
+
+    protected void updateOrganizationByCaregiver(String organization){
+        this.organization = organization;
     }
 
     protected void updateImg(String imgUrl){

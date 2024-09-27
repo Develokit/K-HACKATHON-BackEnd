@@ -91,8 +91,12 @@ public class Elderly extends User {
         caregiver.getElderlyList().add(this);
     }
 
+    public void updateOrganizationByElderly(String organization){
+        super.updateOrganizationByCaregiver(organization);
+    }
+
     public void updateElderlyInfo(ElderlyModifyReqDto elderlyModifyReqDto){
-        super.updateCommonInfo(elderlyModifyReqDto.getName(),
+        super.updateElderlyInfo(elderlyModifyReqDto.getName(),
                 elderlyModifyReqDto.getGender(),
                 elderlyModifyReqDto.getBirthDate(), elderlyModifyReqDto.getContact());
 
@@ -104,6 +108,8 @@ public class Elderly extends User {
             this.emergencyContactInfo.emergencyName = elderlyModifyReqDto.getEmergencyName();
         if(elderlyModifyReqDto.getEmergencyContact() != null)
             this.emergencyContactInfo.emergencyContact = elderlyModifyReqDto.getEmergencyContact();
+        if(elderlyModifyReqDto.getRelationship() != null)
+            this.emergencyContactInfo.relationship = elderlyModifyReqDto.getRelationship();
     }
     public void updateImg(String imgUrl){
         super.updateImg(imgUrl);

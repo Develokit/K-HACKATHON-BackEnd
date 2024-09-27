@@ -239,7 +239,7 @@ public class ElderlyService {
         elderlyPS.updateElderlyInfo(elderlyModifyReqDto);
 
         //어시스턴트 이름 수정
-        if(elderlyModifyReqDto.getAssistantName() != null) {
+        if(elderlyModifyReqDto.getAssistantName() != null && elderlyPS.hasAssistant()) {
             Assistant assistantPS = elderlyPS.getAssistant();
             assistantPS.modifyAssistantName(elderlyModifyReqDto.getAssistantName());
         }
