@@ -18,35 +18,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ReportTest {
 
-    String monthlyResponse =
-            "분석 완료: **월간 평가 지표 및 이유:**\n" +
-                    "\n" +
-                    "**HealthStatusIndicator: FAIR**\n" +
-                    "이유: 첫 두 주 동안 건강에 특별한 문제가 없었으나, 마지막 주에는 피로감을 호소하며 건강 상태가 약간 악화되었습니다. 건강 상태에 변동이 있었기 때문에 FAIR로 평가합니다.\n" +
-                    "\n" +
-                    "**ActivityLevelIndicator: FAIR**\n" +
-                    "이유: 첫 주와 마지막 주에는 활동 수준이 낮고 주로 실내에 머물렀지만, 두 번째 주에는 산책 등 신체 활동을 꾸준히 했습니다. 활동 수준이 변동되어 FAIR로 평가합니다.\n" +
-                    "\n" +
-                    "**CognitiveFunctionIndicator: GOOD**\n" +
-                    "이유: 첫 두 주 동안 명확하고 논리적인 답변을 제공했고, 마지막 주에는 약간의 혼동을 보였으나 전반적으로 인지 기능이 양호했습니다. 인지 기능이 대체로 유지되어 GOOD으로 평가합니다.\n" +
-                    "\n" +
-                    "**LifeSatisfactionIndicator: FAIR**\n" +
-                    "이유: 첫 주와 마지막 주에는 생활에 대한 특별한 만족감을 표현하지 않았고, 두 번째 주에만 만족감을 나타냈습니다. 전반적인 생활 만족도가 일관되지 않아 FAIR로 평가합니다.\n" +
-                    "\n" +
-                    "**PsychologicalStabilityIndicator: FAIR**\n" +
-                    "이유: 첫 주에는 약간의 스트레스를 표현했고, 마지막 주에는 불안과 우울감을 나타냈습니다. 두 번째 주에 심리적으로 안정되었으나 전반적으로 불안정한 경향이 있어 FAIR로 평가합니다.\n" +
-                    "\n" +
-                    "**SocialConnectivityIndicator: FAIR**\n" +
-                    "이유: 첫 두 주 동안 가족과 친구들과의 긍정적 상호작용이 있었으나, 마지막 주에는 거의 상호작용이 없었습니다. 사회적 연결성이 변동되었기 때문에 FAIR로 평가합니다.\n" +
-                    "\n" +
-                    "**SupportNeedsIndicator: GOOD**\n" +
-                    "이유: 첫 두 주 동안 대부분 독립적으로 생활할 수 있었고, 마지막 주에 약간의 외부 지원이 필요했으나 전적으로 의존하지는 않았습니다. 대체로 독립성을 유지하여 GOOD으로 평가합니다.\n" +
-                    "\n" +
-                    "---\n" +
-                    "\n" +
-                    "**종합 평가:** \n" +
-                    "노인의 건강 상태, 활동 수준, 인지 기능, 생활 만족도, 심리적 안정, 사회적 연결성이 한 달 동안 변동이 있었습니다. 특히 마지막 주에 건강과 심리 상태가 악화되는 경향이 보이므로, 주기적인 모니터링과 적절한 지원이 필요합니다. 첫 두 주는 안정적이었으나, 마지막 주에 불안정함이 두드러졌습니다. 한 달 동안의 데이터를 통해 더 나은 건강 관리와 사회적 연결성 유지 전략이 필요함을 시사합니다.\n";
-
+    String monthlyResponse = "### 월간 평가\n" +
+            "\n" +
+            "**ActivityLevelIndicator: FAIR**  \n" +
+            "이유: 노인은 운동에 대한 귀찮음을 표현했지만, 운동 계획을 세우고 있어 일부 활동성을 유지하고 있습니다. 전반적으로 보다 더 적극적인 활동이 필요하지만, 회피하지 않고 운동을 고려하는 모습이 있습니다.\n" +
+            "\n" +
+            "**HealthStatusIndicator: GOOD**  \n" +
+            "이유: 노인이 직접적으로 건강 문제를 언급하지 않았고, 운동 계획을 세우고 있다는 점에서 건강 상태가 양호하다고 볼 수 있습니다. 건강이 전반적으로 좋다고 판단되므로 GOOD으로 평가합니다.\n" +
+            "\n" +
+            "**CognitiveFunctionIndicator: GOOD**  \n" +
+            "이유: 노인은 일관된 사고 흐름을 유지하고 운동에 대한 의사 결정을 내렸습니다. 이는 인지 기능이 양호하다는 것을 보여 줍니다. 따라서 GOOD로 평가합니다.\n" +
+            "\n" +
+            "**LifeSatisfactionIndicator: GOOD**  \n" +
+            "이유: 운동 후의 계획이나 간식을 통해 긍정적인 생활 만족도를 나타냈습니다. 활동 후 만족감을 느끼는 모습이 삶의 질을 높이고 있다고 판단됩니다.\n" +
+            "\n" +
+            "**PsychologicalStabilityIndicator: GOOD**  \n" +
+            "이유: 노인은 가벼운 유머를 사용하며 스트레스를 표현하지 않고 긍정적인 감정을 유지했습니다. 심리적으로 안정된 상태를 보여주어 좋은 평가를 받을 수 있습니다.\n" +
+            "\n" +
+            "**SocialConnectivityIndicator: GOOD**  \n" +
+            "이유: AI와의 즐거운 대화를 통해 긍정적인 사회적 상호작용을 지속하고 있습니다. 이는 사회적 연결성이 잘 유지되고 있음을 나타냅니다.\n" +
+            "\n" +
+            "**SupportNeedsIndicator: EXCELLENT**  \n" +
+            "이유: 노인은 운동이나 활동 계획을 독립적으로 고려하고 실행할 수 있는 능력을 보여주었고, 특별한 외부 지원이 필요하지 않은 상태입니다. 따라서 EXCELLENT으로 평가합니다.\n" +
+            "\n" +
+            "### 종합 평가:\n" +
+            "전반적으로 노인은 건강, 인지 기능, 심리 안정성, 사회적 상호작용 등에서 긍정적인 상태를 보였습니다. 운동 계획을 세우고 이를 실행에 옮기고자 하는 의지 또한 좋은 징후입니다. 앞으로 더욱 활발한 활동과 사회적 상호작용을 통해 긍정적인 상태를 지속하고 개선할 수 있도록 장려할 필요가 있습니다.\n";
 
     private static final Pattern W_SUMMARY_PATTERN = Pattern.compile("### 종합 평가\\s*(.*?)\\s*$", Pattern.DOTALL);
 
@@ -76,7 +72,8 @@ class ReportTest {
 
     private static final Pattern PATTERN = Pattern.compile("\\*\\*(.*?)\\: \\s*(.*?)\\s*\\*\\*\\s*이유: (.*?)\\n(?=\\n|$)");
 
-    private static final Pattern SUMMARY_PATTERN = Pattern.compile("\\*\\*종합 평가\\:\\*\\*\\s*(.*?)\\s*(?=\\n|$)", Pattern.DOTALL);
+    //private static final Pattern SUMMARY_PATTERN = Pattern.compile("\\*\\*종합 평가\\:\\*\\*\\s*(.*?)\\s*(?=\\n|$)", Pattern.DOTALL);
+    private static final Pattern SUMMARY_PATTERN = Pattern.compile("### 종합 평가:\\s*(.*)", Pattern.DOTALL);
 
 
     @Test

@@ -207,7 +207,7 @@ public class ThreadWebClient {
                             JsonNode textNode = contentArray.get(0).path("text");
                             return Mono.just(textNode.path("value").asText());
                         }
-                        log.warn("No content found in the response");
+                        log.warn("반환된 응답이 없습니다");
                         return Mono.just("");
                     } catch (JsonProcessingException e) {
                         log.error(e.getMessage());

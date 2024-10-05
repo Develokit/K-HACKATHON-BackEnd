@@ -3,6 +3,7 @@ package com.develokit.maeum_ieum.config.batch;
 import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.report.ReportType;
+import com.develokit.maeum_ieum.service.report.ProcessedReport;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -108,10 +109,10 @@ public class ReportJobConfig {
     @Bean
     @Qualifier("monthlyReportGenerationStep")
     public Step monthlyReportGenerationStep(@Qualifier("monthlyReportReader") ItemReader<Report> monthlyReportReader,
-                                            ItemProcessor<Report, Report> reportProcessor,
-                                            ItemWriter<Report> reportWriter) {
+                                            ItemProcessor<Report, ProcessedReport> reportProcessor,
+                                            ItemWriter<ProcessedReport> reportWriter) {
         return new StepBuilder("monthlyReportGenerationStep", jobRepository)
-                .<Report, Report>chunk(100, transactionManager)
+                .<Report, ProcessedReport>chunk(100, transactionManager)
                 .reader(monthlyReportReader)
                 .processor(reportProcessor)
                 .writer(reportWriter)
@@ -122,10 +123,10 @@ public class ReportJobConfig {
     @Bean
     @Qualifier("weeklyReportGenerationStep")
     public Step weeklyReportGenerationStep(@Qualifier("weeklyReportReader") ItemReader<Report> weeklyReportReader,
-                                           ItemProcessor<Report, Report> reportProcessor,
-                                           ItemWriter<Report> reportWriter) {
+                                           ItemProcessor<Report, ProcessedReport> reportProcessor,
+                                           ItemWriter<ProcessedReport> reportWriter) {
         return new StepBuilder("weeklyReportGenerationStep", jobRepository)
-                .<Report, Report>chunk(100, transactionManager)
+                .<Report, ProcessedReport>chunk(100, transactionManager)
                 .reader(weeklyReportReader)
                 .processor(reportProcessor)
                 .writer(reportWriter)

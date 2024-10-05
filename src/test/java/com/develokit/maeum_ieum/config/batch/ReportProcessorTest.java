@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportStatus;
 import com.develokit.maeum_ieum.domain.user.elderly.Elderly;
 import com.develokit.maeum_ieum.ex.CustomApiException;
+import com.develokit.maeum_ieum.service.report.ProcessedReport;
 import com.develokit.maeum_ieum.service.report.ReportProcessor;
 import com.develokit.maeum_ieum.service.report.ReportService;
 import org.junit.jupiter.api.Test;
@@ -44,19 +45,23 @@ class ReportProcessorTest {
         when(report2.getElderly()).thenReturn(elderly2);
 
         // when
-        Report result = reportProcessor.process(report);
-        Report result2 = reportProcessor.process(report2);
+        ProcessedReport process = reportProcessor.process(report);
+        Report process1Report
+                = process.getReport();
+
+        ProcessedReport process1 = reportProcessor.process(report2);
+        Report process2Report = process1.getReport();
 
         // then
         verify(report, times(1)).updateReportStatus(ReportStatus.PROCESSING);
         verify(reportService, times(1)).generateReportContent(report);
         verify(report, times(1)).updateReportStatus(ReportStatus.COMPLETED);
-        assertNotNull(result);
+        assertNotNull(report);
 
         verify(report2, times(1)).updateReportStatus(ReportStatus.PROCESSING);
         verify(reportService, times(1)).generateReportContent(report2);
         verify(report2, times(1)).updateReportStatus(ReportStatus.COMPLETED);
-        assertNotNull(result2);
+        assertNotNull(report);
     }
 
     @Test

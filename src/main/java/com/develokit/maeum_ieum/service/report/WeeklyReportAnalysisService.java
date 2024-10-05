@@ -4,6 +4,7 @@ import com.develokit.maeum_ieum.domain.message.Message;
 import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.report.indicator.*;
+import com.develokit.maeum_ieum.dto.openAi.message.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.ReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +33,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.develokit.maeum_ieum.dto.openAi.message.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.run.ReqDto.*;
 
 @Service
@@ -61,12 +64,18 @@ public class WeeklyReportAnalysisService {
 
         System.out.println("conversationContent = " + conversationContent);
 
+        CreateMessageReqDto createMessageReqDto = new CreateMessageReqDto(
+                "user",
+                conversationContent
+        );
+
         CreateRunReqDto createRunReqDto = new CreateRunReqDto(
                 openAiAssistantId,
                 true
         );
 
-        return createRun(createRunReqDto)
+        return createMessage(createMessageReqDto)
+                .then(createRun(createRunReqDto))
                 .flatMap(this::parseAnalysisResult)
                 .publishOn(Schedulers.boundedElastic())
                 .map(analysisResult -> {
@@ -85,6 +94,20 @@ public class WeeklyReportAnalysisService {
                 .doOnError(e -> log.error("주간 보고서 분석 과정에서 오류 발생: ", e))
                 .onErrorResume(e -> Mono.error(new CustomApiException("보고서 분석 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR)));
     }
+
+    public Mono<MessageRespDto> createMessage(CreateMessageReqDto createMessageReqDto){
+        return webClient.post()
+                .uri("/threads/{threadId}/messages", threadId)
+                .bodyValue(createMessageReqDto)
+                .retrieve()
+                .bodyToMono(MessageRespDto.class)
+                .doOnSubscribe(subscription -> log.info("OPENAI에 메시지 생성 요청 전송"))
+                .doOnError(WebClientResponseException.class, e -> {
+                    log.error(e.getMessage());
+                    throw new CustomApiException("메시지 생성 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+                });
+    }
+
     private Mono<String> createRun(CreateRunReqDto createRunReqDto) {
         return webClient.post()
                 .uri("/threads/{threadId}/runs", threadId)

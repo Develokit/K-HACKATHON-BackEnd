@@ -1,25 +1,26 @@
 package com.develokit.maeum_ieum.service.report;
 
-import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import static com.develokit.maeum_ieum.service.report.ReportProcessor.*;
-
 
 @Component
 @RequiredArgsConstructor
-public class ReportWriter implements ItemWriter<Report> {
+public class ReportWriter implements ItemWriter<ProcessedReport> {
 
     private final ReportRepository reportRepository;
 
     @Override
-    public void write(Chunk<? extends Report> chunk) throws Exception {
-        for (Report result : chunk.getItems()) {
-            reportRepository.save(result);
+    public void write(Chunk<? extends ProcessedReport> chunk) throws Exception {
+        for (ProcessedReport processedReport : chunk.getItems()) {
+            if(processedReport.isAnalyzed()){
+                reportRepository.save(processedReport.getReport());
+            }else{
+                reportRepository.delete(processedReport.getReport());
+            }
         }
     }
 }

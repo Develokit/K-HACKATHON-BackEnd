@@ -5,6 +5,7 @@ import com.develokit.maeum_ieum.domain.message.Message;
 import com.develokit.maeum_ieum.domain.report.Report;
 import com.develokit.maeum_ieum.domain.report.ReportRepository;
 import com.develokit.maeum_ieum.domain.report.indicator.*;
+import com.develokit.maeum_ieum.dto.openAi.message.RespDto;
 import com.develokit.maeum_ieum.dto.openAi.run.ReqDto;
 import com.develokit.maeum_ieum.ex.CustomApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -33,6 +35,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.develokit.maeum_ieum.dto.openAi.message.ReqDto.*;
+import static com.develokit.maeum_ieum.dto.openAi.message.RespDto.*;
 import static com.develokit.maeum_ieum.dto.openAi.run.ReqDto.*;
 
 @Service
@@ -51,24 +55,27 @@ public class MonthlyReportAnalysisService {
 
     private static final Pattern PATTERN = Pattern.compile("\\*\\*(.*?)\\: \\s*(.*?)\\s*\\*\\*\\s*이유: (.*?)\\n(?=\\n|$)");
 
-    private static final Pattern SUMMARY_PATTERN = Pattern.compile("\\*\\*종합 평가\\:\\*\\*\\s*(.*?)\\s*(?=\\n|$)", Pattern.DOTALL);
-
-
+    private static final Pattern SUMMARY_PATTERN = Pattern.compile("### 종합 평가:\\s*(.*)", Pattern.DOTALL);
 
     @Transactional
     public Mono<Report> generateMonthlyReportAnalysis(Report report, List<Report>reportList) {
+
         String conversationContent = reportList.stream()
                 .map(Report::getQuantitativeAnalysis)
                 .collect(Collectors.joining("\n"));
 
-        System.out.println("conversationContent = " + conversationContent);
+        CreateMessageReqDto createMessageReqDto = new CreateMessageReqDto(
+                "user",
+                conversationContent
+        );
 
         CreateRunReqDto createRunReqDto = new CreateRunReqDto(
                 openAiAssistantId,
                 true
         );
 
-        return createRun(createRunReqDto)
+        return  createMessage(createMessageReqDto)
+                .then(createRun(createRunReqDto))
                 .flatMap(this::parseAnalysisResult)
                 .publishOn(Schedulers.boundedElastic())
                 .map(analysisResult -> {
@@ -87,6 +94,22 @@ public class MonthlyReportAnalysisService {
                 .doOnError(e -> log.error("월간 보고서 분석 과정에서 오류 발생: ", e))
                 .onErrorResume(e -> Mono.error(new CustomApiException("보고서 분석 과정에서 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR)));
     }
+
+    public Mono<MessageRespDto> createMessage(CreateMessageReqDto createMessageReqDto){
+        return webClient.post()
+                .uri("/threads/{threadId}/messages", threadId)
+                .bodyValue(createMessageReqDto)
+                .retrieve()
+                .bodyToMono(MessageRespDto.class)
+                .doOnSubscribe(subscription -> log.info("OPENAI에 메시지 생성 요청 전송"))
+                .doOnSuccess(messageRespDto -> log.info("OPENAI 메시지 생성 완료: {}", messageRespDto.getContent()))
+                .doOnError(WebClientResponseException.class, e -> {
+                    log.error(e.getMessage());
+                    throw new CustomApiException("메시지 생성 과정에서 에러 발생", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
+                });
+    }
+
+
     private Mono<String> createRun(CreateRunReqDto createRunReqDto) {
         return webClient.post()
                 .uri("/threads/{threadId}/runs", threadId)
@@ -98,10 +121,15 @@ public class MonthlyReportAnalysisService {
                     log.error("OPENAI 요청 중 오류 발생: {}", e.getMessage());
                     throw new CustomApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR);
                 })
+//                .doOnNext(event -> {
+//                    log.info("수신한 이벤트: event = {}, data = {}", event.event(), event.data());
+//                })
                 .filter(event -> "thread.message.completed".equals(event.event()))
                 .next()
+                .doOnNext(event -> log.info("전체 답변 생성 완료: {}", event.data()))
                 .flatMap(event -> {
                     String data = event.data();
+                    log.info("OPENAI 응답 데이터: {}", data);
                     try {
                         ObjectMapper om = new ObjectMapper();
                         JsonNode rootNode = om.readTree(data);
@@ -117,6 +145,7 @@ public class MonthlyReportAnalysisService {
                         return Mono.error(new CustomApiException("분석 결과 파싱 오류", HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR));
                     }
                 })
+                .doOnError(e -> log.error("런 이벤트 completed가 발생하지 않음: ",e))
                 .timeout(Duration.ofSeconds(60))
                 .doOnNext(answer -> log.debug("분석 완료: {}", answer));
     }
@@ -144,6 +173,7 @@ public class MonthlyReportAnalysisService {
             Matcher summaryMatcher = SUMMARY_PATTERN.matcher(analysisResult);
             if (summaryMatcher.find()) {
                 String summary = summaryMatcher.group(1).trim();
+                System.out.println("summary = " + summary);
                 resultMap.put("Summary", new IndicatorResult("종합 평가", summary));
             }
 

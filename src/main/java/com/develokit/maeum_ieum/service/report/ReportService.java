@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.develokit.maeum_ieum.dto.report.ReqDto.*;
 import static com.develokit.maeum_ieum.dto.report.RespDto.*;
@@ -206,45 +207,63 @@ public class ReportService {
 
             List<Message> messageList = messageRepository.findByElderlyWithTimeZone(elderlyPS, startDateTime, today);
 
-            if (messageList.isEmpty()) {
-                //TODO 대화 내역이 없다고 집어넣기
-                report.setReportStatus(ReportStatus.COMPLETED);
-                report.updateEndDate(LocalDateTime.now());
-                return Mono.just(report);
+            if (!messageList.isEmpty()) {
+                return generateWeeklyReportAnalysis(report, messageList)
+                        .flatMap(Mono::just)
+                        .doOnError(e -> log.error("주간 보고서 분석 중 오류 발생", e));
             }
-
-            return generateWeeklyReportAnalysis(report, messageList)
-                    .flatMap(Mono::just)
-                    .doOnError(e -> log.error("주간 보고서 분석 중 오류 발생", e));
+            else return Mono.empty();
         }
         else{
-            return generateMonthlyReportAnalysis(report, elderlyPS)
-                    .flatMap(Mono::just)
-                    .doOnError(e -> log.error("월간 보고서 분석 중 오류 발생", e));
+
+            //먼저 report와 같은 달에 생성된 주간 보고서를 찾음
+            LocalDate startOfMonth = CustomUtil.getStartOfMonth(report.getStartDate());
+            LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
+
+            List<Report> reportList = reportRepository.findByReportTypeAndReportStatusAndYearAndMonth(
+                    elderlyPS, ReportType.WEEKLY, ReportStatus.COMPLETED,
+                    startOfMonth, startOfNextMonth);
+
+            log.info("노인 ID = {}, 해당 달에 생성된 주간 보고서 개수 = {}", elderlyPS.getId(), reportList.size());
+
+            if(!reportList.isEmpty()) {
+                return generateMonthlyReportAnalysis(report, reportList)
+                        .flatMap(Mono::just)
+                        .doOnError(e -> log.error("월간 보고서 분석 중 오류 발생", e));
+            }
+            else return Mono.empty();
         }
     }
-    //월간 보고서 분석
-    private Mono<Report> generateMonthlyReportAnalysis(Report report, Elderly elderly){
-        //먼저 report와 같은 달에 생성된 주간 보고서를 찾음
-        LocalDate startOfMonth = CustomUtil.getStartOfMonth(report.getStartDate());
-        LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
 
-        //주간 보고서 객체를 MonthlyReportAnalysisService에 넘기기
-        return Mono.fromCallable(() ->
-                        reportRepository.findByReportTypeAndReportStatusAndYearAndMonth(
-                elderly, ReportType.WEEKLY, ReportStatus.COMPLETED,
-                startOfMonth, startOfNextMonth
-        )).subscribeOn(Schedulers.boundedElastic())
-                .flatMap(weeklyReportList -> monthlyReportAnalysisService.generateMonthlyReportAnalysis(report, weeklyReportList))
-                .doOnSuccess(r -> log.info("월간 보고서 분석 완료: 보고서 ID {}", r.getId()))
-                .doOnError(e -> log.error("월간 보고서 분석 중 오류 발생", e));
+    //월간 보고서 분석
+    private Mono<Report> generateMonthlyReportAnalysis(Report report, List<Report> weeklyReportList){
+
+        log.info("generateMonthlyReportAnalysis 호출됨 - 보고서 ID: {}", report != null ? report.getId() : "null");
+        log.info("주간 보고서 목록 크기: {}", weeklyReportList != null ? weeklyReportList.size() : 0);
+        return monthlyReportAnalysisService.generateMonthlyReportAnalysis(report, weeklyReportList)
+                .doOnSuccess(r -> {
+                    log.info("월간 보고서 분석 완료: 보고서 ID {}", r != null ? r.getId() : "null");
+                })
+                .doOnError(e -> {
+                    log.error("월간 보고서 분석 중 오류 발생", e);
+                    if (report != null) {
+                        //report.setReportStatus(ReportStatus.ERROR); 어케 처리하냐
+                    }
+                });
     }
 
     //주간 보고서 분석
     private Mono<Report> generateWeeklyReportAnalysis(Report report, List<Message>messageList){
         return weeklyReportAnalysisService.generateWeeklyReportAnalysis(report, messageList)
-                .doOnSuccess(r -> log.info("주간 보고서 분석 완료: 보고서 ID {}", r.getId()))
-                .doOnError(e -> log.error("주간 보고서 분석 중 오류 발생", e));
+                .doOnSuccess(r -> {
+                    log.info("주간 보고서 분석 완료: 보고서 ID {}", r != null ? r.getId() : "null");
+                })
+                .doOnError(e -> {
+                    log.error("주간 보고서 분석 중 오류 발생", e);
+                    if (report != null) {
+                       // report.setReportStatus(ReportStatus.ERROR); 이대로 할지 아니면 배치에서 할지
+                    }
+                });
     }
 
 
